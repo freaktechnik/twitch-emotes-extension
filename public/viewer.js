@@ -163,7 +163,7 @@
         getChannelInfo: function() {
             return fetch('https://api.twitch.tv/helix/users?id=' + this.channelId, {
                 headers: {
-                    "Client-ID": this.clientId
+                    "Client-ID": EmotesPanel.clientId
                 }
             }).then(function(res) {
                 if(res.ok && res.code === 200) {
@@ -191,7 +191,7 @@
             }).then(function(json) {
                 return fetch('https://api.twitch.tv/kraken/chat/emoticon_images?emotesets=' + Object.values(json).join(','), {
                     headers: {
-                        "Client-ID": "rx3pywtkz128a6mca7fqzrj6f80j04",//EmotesPanel.clientId,
+                        "Client-ID": EmotesPanel.clientId,
                         Accept: "application/vnd.twitchtv.v5+json"
                     }
                 }).then(function(r) {
