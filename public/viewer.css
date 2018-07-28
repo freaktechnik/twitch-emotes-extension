@@ -1,0 +1,67 @@
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+
+body {
+    user-select: none;
+    font-family: sans-serif;
+}
+
+h2 {
+    display: inline;
+    font-size: 1em;
+    font-weight: normal;
+}
+
+ul {
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+ul > li {
+    display: inline-block;
+    margin: 0.5em;
+}
+
+ul > li > figure {
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    background: radial-gradient(ellipse 3em 0.5em at bottom 1.1em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
+}
+
+.dark ul > li > figure {
+    background: radial-gradient(ellipse 3em 0.5em at bottom 1.1em center, rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
+}
+
+ul > li > figure > figcaption {
+    font-size: 0.7em;
+    padding-top: 0.2em;
+}
+
+small {
+    opacity: 0.7;
+    font-size: 0.6rem;
+}
+
+summary {
+    padding: 0.25em;
+    background-color: #6441a4;
+    color: white;
+    border-radius: 2px;
+}
+
+details {
+    margin-bottom: 0.25em;
+    background-color: #eaeaea;
+    border-radius: 2px;
+    color: black;
+}
+
+.dark details {
+    background-color: #232323;
+    color: white;
+}

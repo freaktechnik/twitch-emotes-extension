@@ -70,3 +70,5 @@ typings/
 # dotenv environment variables file
 .env
 
+vendor
+public/polyfill.js
