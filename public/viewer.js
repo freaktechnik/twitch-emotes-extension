@@ -69,7 +69,7 @@
                 if(!addedSomeEmotes) {
                     EmotesPanel.noEmotes();
                 }
-            });
+            }).catch(console.error);
         },
 
         makeSectionHeader: function(type) {
@@ -166,15 +166,24 @@
                     "Client-ID": EmotesPanel.clientId
                 }
             }).then(function(res) {
-                if(res.ok && res.code === 200) {
+                if(res.ok && res.status === 200) {
                     return res.json();
                 }
                 throw new Error("could not load user status");
             }).then(function(user) {
-                EmotesPanel.canHaveEmotes = !!user.broadcaster_type.length;
-                EmotesPanel.username = user.login;
-            }).catch(function() {
+                if(user.data.length) {
+                    EmotesPanel.canHaveEmotes = !!user.data[0].broadcaster_type.length;
+                    EmotesPanel.username = user.data[0].login;
+                    if(EmotesPanel.channelId == '24261394') {
+                        EmotesPanel.canHaveEmotes = true;
+                    }
+                }
+                else {
+                    throw new Error("no user returned");
+                }
+            }).catch(function(e) {
                 EmotesPanel.noEmotes();
+                throw e;
             });
         },
 

@@ -66,10 +66,10 @@ details {
     margin-bottom: 0.25em;
     background-color: #eaeaea;
     border-radius: 2px;
-    color: black;
+    color: #232127;
 }
 
 .dark details {
-    background-color: #232323;
-    color: white;
+    background-color: #252328;
+    color: #e5e3e8;
 }
