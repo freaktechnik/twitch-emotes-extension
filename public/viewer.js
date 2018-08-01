@@ -44,6 +44,7 @@
                 ];
                 var base = document.getElementById("emotes");
                 var addedSomeEmotes = false;
+                var hasTwitchEmotes = false;
                 for(var i = 0; i < emoteSets.length; ++i) {
                     if(emoteSets[i].length) {
                         if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
@@ -53,11 +54,12 @@
                                     var section = EmotesPanel.makeEmoteSection(typeMap[i] + subPlan.type, subPlan.emotes, true);
                                     base.appendChild(section);
                                     addedSomeEmotes = true;
+                                    hasTwitchEmotes = true;
                                 }
                             }
                         }
                         else {
-                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i]);
+                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i], !hasTwitchEmotes);
                             base.appendChild(section);
                             if(!addedSomeEmotes) {
                                 addedSomeEmotes = !!emoteSets[i].length;
