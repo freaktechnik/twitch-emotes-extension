@@ -21,7 +21,16 @@ class CacheBuilder extends \JsonStreamingParser\Listener\IdleListener {
     }
     public function endObject() {
         if($this->level == 3 && $this->inPlans) {
-            file_put_contents($this->basePath.$this->currentChannelID.'.json', json_encode($this->currentInfo));
+            $filePath = $this->basePath.$this->currentChannelID.'.json';
+            $json = json_encode($this->currentInfo);
+            $shouldSave = true;
+            if(is_file($filePath)) {
+                $content = file_get_contents($filePath);
+                $shouldSave = $content !== $json;
+            }
+            if($shouldSave) {
+                file_put_contents($filePath, $json);
+            }
         }
         $this->level--;
     }
@@ -58,6 +67,8 @@ $basePath = __DIR__.'/../api/emotesets/';
 if(!is_dir($basePath)) {
     mkdir($basePath, 0755, true);
 }
+
+//TODO remove files that are older than a month (and then potentially re-add them with the parser)
 
 $listener = new CacheBuilder($basePath);
 try {
