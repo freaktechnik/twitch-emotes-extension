@@ -1,9 +1,10 @@
 {
-  "name": "Emotes Showcase",
+  "name": "Emotes-Showcase",
   "version": "1.0.0",
   "description": "Twitch extension that displays emotes of channel",
   "main": "index.js",
   "scripts": {
+    "build": "zip -9 -y -r -q -j emotes-showcase.zip public/config.css public/config.html public/config.js public/panel.html public/polyfill.js public/viewer.css public/viewer.js"
   },
   "keywords": [
     "twitch",
@@ -11,6 +12,14 @@
   ],
   "author": "Martin Giger (https://humanoids.be)",
   "license": "Apache-2.0",
-  "dependencies": {
-  }
+  "dependencies": {},
+  "files": [
+    "public/config.css",
+    "public/config.html",
+    "public/config.js",
+    "public/panel.html",
+    "public/polyfill.js",
+    "public/viewer.css",
+    "public/viewer.js"
+  ]
 }
