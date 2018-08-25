@@ -29,7 +29,7 @@
             this.doneLoading();
             var base = document.getElementById("noemotes");
             base.className = '';
-            document.getElementsByTagName('small')[0].className = 'hidden';
+            document.getElementById('credits').className = 'hidden';
         },
 
         updatePanel: function() {

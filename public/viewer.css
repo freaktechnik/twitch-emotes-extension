@@ -81,14 +81,18 @@ details {
     color: #e5e3e8;
 }
 
+#noemotes,
+#loading {
+    margin: 1em 0;
+}
+
 #loading {
     text-align: center;
-    margin: 1em;
 }
 
 #loading svg {
-    height: 64px;
-    width: 64px;
+    max-height: 64px;
+    max-width: 64px;
 }
 
 #loading g {
