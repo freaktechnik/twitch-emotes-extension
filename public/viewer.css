@@ -3,12 +3,18 @@
     visibility: hidden;
 }
 
+html {
+    min-height: 100%;
+}
+
 body {
     user-select: none;
     font-family: sans-serif;
 
     color: #232127;
     background-color: #fff;
+
+    min-height: 100%;
 }
 
 body.dark {
@@ -73,4 +79,22 @@ details {
 .dark details {
     background-color: #252328;
     color: #e5e3e8;
+}
+
+#loading {
+    text-align: center;
+    margin: 1em;
+}
+
+#loading svg {
+    height: 64px;
+    width: 64px;
+}
+
+#loading g {
+    stroke: #232127;
+}
+
+.dark #loading g {
+    stroke: #e5e3e8;
 }

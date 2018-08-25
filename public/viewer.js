@@ -21,10 +21,15 @@
             }
         },
 
+        doneLoading: function() {
+            document.getElementById("loading").className = 'hidden';
+        },
+
         noEmotes: function() {
+            this.doneLoading();
             var base = document.getElementById("noemotes");
-            base.classList = '';
-            document.getElementsByTagName('small')[0].classList = 'hidden';
+            base.className = '';
+            document.getElementsByTagName('small')[0].className = 'hidden';
         },
 
         updatePanel: function() {
@@ -70,6 +75,9 @@
                 }
                 if(!addedSomeEmotes) {
                     EmotesPanel.noEmotes();
+                }
+                else {
+                    EmotesPanel.doneLoading();
                 }
             }).catch(console.error);
         },
@@ -127,6 +135,9 @@
             var prefix = '';
             var showAnd = false;
             var saveType = type;
+            if(this.visibleCredits.length == 0) {
+                document.getElementById("credits").className = '';
+            }
             if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
                 prefix = 'sub';
                 if(this.visibleCredits.indexOf(EmotesPanel.TYPE.BTTV) > -1) {
@@ -220,15 +231,17 @@
                 var key;
                 for(var i = 0; i < planKeys.length; ++i) {
                     key = planKeys[i];
-                    ret.push({
-                        type: key,
-                        emotes: data[0].emoticon_sets[data[1][key]].map(function(emote) {
-                            return {
-                                name: emote.code,
-                                url: 'https://static-cdn.jtvnw.net/emoticons/v1/' + emote.id + '/1.0'
-                            };
-                        })
-                    });
+                    if(data[0].emoticon_sets.hasOwnProperty(data[1][key])) {
+                        ret.push({
+                            type: key,
+                            emotes: data[0].emoticon_sets[data[1][key]].map(function(emote) {
+                                return {
+                                    name: emote.code,
+                                    url: 'https://static-cdn.jtvnw.net/emoticons/v1/' + emote.id + '/1.0'
+                                };
+                            })
+                        });
+                    }
                 }
                 return ret;
             });
@@ -269,7 +282,7 @@
         },
 
         setTheme: function(theme) {
-            document.body.classList = theme;
+            document.body.className = theme;
         }
     };
 
