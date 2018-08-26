@@ -13,6 +13,18 @@
             2: "_2000",
             3: "_3000"
         },
+        SIZES: [
+            1,
+            1.5,
+            2,
+            3,
+            4
+        ],
+        BTTV_SIZES: [
+           1,
+           2,
+           3
+        ],
         loaded: false,
         visibleCredits: [],
         setAuth: function(auth) {
@@ -89,7 +101,6 @@
 
         getTierFromPrice: function(price) {
             var numericPrice = parseFloat(price.substr(1));
-            console.log(price, numericPrice);
             if(numericPrice >= 24.99) {
                 return 3;
             }
@@ -132,8 +143,10 @@
             for(var i = 0; i < emotes.length; ++i) {
                 var emote = emotes[i];
                 var image = new Image(emote.width, emote.height);
-                //TODO srcset for retina
                 image.src = emote.url;
+                if(emote.hasOwnProperty("srcset")) {
+                    image.srcset = emote.srcset;
+                }
                 var figure = document.createElement("figure");
                 figure.appendChild(image);
                 var caption = document.createElement("figcaption");
@@ -226,6 +239,17 @@
             });
         },
 
+        makeEmoteUrl: function(emoteId, size) {
+            size = size || "1.0";
+            return 'https://static-cdn.jtvnw.net/emoticons/v1/' + emoteId + '/' + size;
+        },
+
+        makeSrcSet: function(emoteId) {
+            return this.SIZES.map(function(density) {
+                return EmotesPanel.makeEmoteUrl(emoteId, density.toFixed(1)) + ' ' + density.toString(10) + 'x';
+            }).join(', ');
+        },
+
         getEmotes: function() {
             if(!this.canHaveEmotes) {
                 return Promise.reject("User can not have twitch emotes");
@@ -263,7 +287,8 @@
                             emotes: data[0].emoticon_sets[data[1][key]].map(function(emote) {
                                 return {
                                     name: emote.code,
-                                    url: 'https://static-cdn.jtvnw.net/emoticons/v1/' + emote.id + '/1.0'
+                                    url: EmotesPanel.makeEmoteUrl(emote.id),
+                                    srcset: EmotesPanel.makeSrcSet(emote.id)
                                 };
                             })
                         });
@@ -283,7 +308,10 @@
                 return json.emotes.map((e) => {
                     return {
                         name: e.code,
-                        url: json.urlTemplate.replace('{{id}}', e.id).replace('{{image}}', '1x')
+                        url: json.urlTemplate.replace('{{id}}', e.id).replace('{{image}}', '1x'),
+                        srcset: EmotesPanel.BTTV_SIZES.map(function(s) {
+                            return json.urlTemplate.replace("{{id}}", e.id).replace('{{image}}', s + 'x') + ' ' + s + 'x';
+                        }).join(',')
                     };
                 });
             });
@@ -300,6 +328,9 @@
                     return {
                         name: emote.name,
                         url: emote.urls["1"],
+                        srcset: Object.keys(emote.urls).map(function(s) {
+                            return emote.urls[s] + ' ' + s + 'x';
+                        }).join(', '),
                         height: emote.height,
                         width: emote.width
                     };
