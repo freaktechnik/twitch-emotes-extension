@@ -156,6 +156,13 @@
                 item.appendChild(figure);
                 list.appendChild(item);
             }
+            list.addEventListener("click", function(e) {
+                if(e.detail > 1 && e.target.tagName.toLowerCase() == 'img') {
+                    var caption = e.target.parentNode.getElementsByTagName('figcaption')[0];
+                    var selection = document.getSelection();
+                    selection.selectAllChildren(caption);
+                }
+            }, true);
             return list;
         },
 
