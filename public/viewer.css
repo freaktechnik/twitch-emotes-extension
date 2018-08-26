@@ -71,6 +71,7 @@ summary {
     border-radius: 2px;
     overflow: hidden;
     line-height: 1.1em;
+    cursor: default;
 }
 
 summary a {
