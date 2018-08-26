@@ -8,6 +8,11 @@
             BTTV: 'bttv',
             FFZ: 'ffz'
         },
+        TIERS: {
+            1: "",
+            2: "_2000",
+            3: "_3000"
+        },
         loaded: false,
         visibleCredits: [],
         setAuth: function(auth) {
@@ -82,12 +87,33 @@
             }).catch(console.error);
         },
 
+        getTierFromPrice: function(price) {
+            var numericPrice = parseFloat(price.substr(1));
+            console.log(price, numericPrice);
+            if(numericPrice >= 24.99) {
+                return 3;
+            }
+            else if(numericPrice >= 9.99) {
+                return 2;
+            }
+            return 1;
+        },
+
         makeSectionHeader: function(type) {
             var header = document.createElement('summary');
             var heading = document.createElement("h2");
 
             if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
-                heading.textContent = "Twitch Subscription (" + type.substr(EmotesPanel.TYPE.TWITCH.length) + ")";
+                var price = type.substr(EmotesPanel.TYPE.TWITCH.length);
+                var tier = this.getTierFromPrice(price);
+                heading.textContent = "Twitch Subscription (Tier " + tier + ")";
+
+                var link = document.createElement("a");
+                link.target = '_blank';
+                link.href = 'https://www.twitch.tv/products/' + this.username + this.TIERS[tier];
+                link.title = "Subscribe for " + price;
+                link.textContent = "Get";
+                heading.appendChild(link);
             }
             else if(type === EmotesPanel.TYPE.FFZ) {
                 heading.textContent = "FrankerFaceZ";
