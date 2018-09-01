@@ -49,6 +49,10 @@
             document.getElementById('credits').className = 'hidden';
         },
 
+        isPopout: function() {
+            return location.search.includes("popout=true");
+        },
+
         updatePanel: function() {
             return this.getChannelInfo().then(function() {
                 var gracefulFail = function() { return []; };
@@ -67,6 +71,7 @@
                 var base = document.getElementById("emotes");
                 var addedSomeEmotes = false;
                 var hasTwitchEmotes = false;
+                var isPopout = EmotesPanel.isPopout();
                 for(var i = 0; i < emoteSets.length; ++i) {
                     if(emoteSets[i].length) {
                         if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
@@ -81,7 +86,7 @@
                             }
                         }
                         else {
-                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i], !hasTwitchEmotes);
+                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i], !hasTwitchEmotes || isPopout);
                             base.appendChild(section);
                             if(!addedSomeEmotes) {
                                 addedSomeEmotes = !!emoteSets[i].length;
@@ -119,6 +124,7 @@
                 var tier = this.getTierFromPrice(price);
                 heading.textContent = "Twitch Subscription (Tier " + tier + ")";
 
+                //TODO don't show for plans user is already subbed for.
                 var link = document.createElement("a");
                 link.target = '_blank';
                 link.href = 'https://www.twitch.tv/products/' + this.username + this.TIERS[tier];
