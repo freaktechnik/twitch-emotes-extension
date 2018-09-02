@@ -40,23 +40,30 @@ ul {
 
 ul > li {
     display: inline-block;
-    margin: 0.5em;
+    margin: 0.5em 0.25em;
+    padding: 0;
 }
 
 ul > li > figure {
     padding: 0;
     margin: 0;
     text-align: center;
-    background: radial-gradient(ellipse 3em 0.5em at bottom 1.1em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
 }
 
-.dark ul > li > figure {
-    background: radial-gradient(ellipse 3em 0.5em at bottom 1.1em center, rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
+ul > li > figure img {
+    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
+    padding-bottom: 0.2em;
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+}
+
+.dark ul > li > figure img {
+    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
 }
 
 ul > li > figure > figcaption {
     font-size: 0.7em;
-    padding-top: 0.2em;
+    word-break: break-all;
 }
 
 small {
