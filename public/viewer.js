@@ -150,6 +150,8 @@
                 var emote = emotes[i];
                 var image = new Image(emote.width, emote.height);
                 image.src = emote.url;
+                image.alt = emote.name;
+                image.title = emote.name;
                 if(emote.hasOwnProperty("srcset")) {
                     image.srcset = emote.srcset;
                 }
