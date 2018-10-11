@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>All done!</title>
+        <link rel="stylesheet" href="shared.css">
+        <link rel="stylesheet" href="config.css">
+    </head>
+    <body>
+        <details open>
+            <summary><h2>General</h2></summary>
+            <p><label for="labels">Show emote labels</label> <input type="checkbox" id="labels" checked></p>
+            <p><label for="popout_expand">Expand all sections in poput</label> <input type="checkbox" id="popout_expand" checked></p>
+        </details>
+        <details>
+            <summary><h2>Channel Subscription Emotes</h2></summary>
+            <!-- TODO preview emotes in section -->
+            <p><label for="sub_visible">Visible</label> <input type="checkbox" id="sub_visible" checked></p>
+            <p><label for="sub_expanded_1">Tier 1 Expanded</label> <input type="checkbox" id="sub_expanded_1" checked></p>
+            <p><label for="sub_expanded_2">Tier 2 Expanded</label> <input type="checkbox" id="sub_expanded_2" checked></p>
+            <p><label for="sub_expanded_3">Tier 3 Expanded</label> <input type="checkbox" id="sub_expanded_3" checked></p>
+            <p><label for="sub_title">Title</label> <input type="text" placeholder="Twitch Subscription" id="sub_title"></p>
+            <p><label for="tier_title_1">Tier 1 name</label> <input type="text" placeholder="Tier 1" id="tier_title_1"></p>
+            <p><label for="tier_title_2">Tier 2 name</label> <input type="text" placeholder="Tier 2" id="tier_title_2"></p>
+            <p><label for="tier_title_3">Tier 3 name</label> <input type="text" placeholder="Tier 3" id="tier_title_3"></p>
+            <p><label for="sub_action">Subscription CTA</label> <input type="text" placeholder="Get" maxlength="6" id="sub_action"></p>
+            <p><label for="sub_tooltip">Subscription CTA Tooltip</label> <input type="text" placeholder="Subscribe for" id="sub_tooltip"></p>
+            <!-- TODO add emotes refresh button -->
+        </details>
+        <details>
+            <summary><h2>BetterTTV Emotes</h2></summary>
+            <!-- TODO preview emotes in section -->
+            <p><label for="bttv_visbiel">Visible</label> <input type="checkbox" id="bttv_visible" checked></p>
+            <p><label for="bttv_expanded">Expanded</label> <input type="checkbox" id="bttv_expanded"></p>
+            <p><label for="bttv_title">Title</label> <input type="text" placeholder="BetterTTV" id="bttv_title"></p>
+        </details>
+        <details>
+            <!-- TODO preview emotes in section -->
+            <summary><h2>FrankerFaceZ Emotes</h2></summary>
+            <p><label for="ffz_visible">Visible</label> <input type="checkbox" id="ffz_visible" checked></p>
+            <p><label for="ffz_expanded">Expanded</label> <input type="checkbox" id="ffz_expanded"></p>
+            <p><label for="ffz_title">Title</label> <input type="text" placeholder="FrankerFaceZ" id="ffz_title"></p>
+        </details>
+
+        <button id="reset" type="reset">Reset</button>
+        <!-- TODO force reload emotes in clients -->
+
+        <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+        <script src="https://localhost.rig.twitch.tv:3000/twitch-ext.js"></script>
+        <script src="polyfill.js" type="text/javascript"></script>
+        <script src="config.js" type="text/javascript"></script>
+    </body>
+</html>

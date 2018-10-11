@@ -1,12 +1,33 @@
-body {
-    user-select: none;
-    font-family: sans-serif;
-
-    color: #232127;
-    background-color: #fff;
+button {
+    padding: 0.25em;
+    background-color: red;
+    color: #e5e3e8;
+    border-radius: 2px;
+    line-height: 1.2em;
+    font-size: 1em;
+    font-size: 1rem;
+    border: none;
 }
 
-body.dark {
-    color: #e5e3e8;
-    background-color: #201c2b;
+button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background-color: #7d5bbe;
+}
+
+p {
+    padding: 0.5em 0.5em;
+    margin: 0;
+    display: flex;
+}
+
+p label {
+    flex-basis: 16em;
+}
+
+p input:not([type="checkbox"]) {
+    flex-grow: 1;
 }

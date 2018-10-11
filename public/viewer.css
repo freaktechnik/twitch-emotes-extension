@@ -3,33 +3,6 @@
     visibility: hidden;
 }
 
-html {
-    min-height: 100%;
-}
-
-body {
-    user-select: none;
-    font-family: sans-serif;
-
-    color: #232127;
-    background-color: #fff;
-
-    min-height: 100%;
-}
-
-body.dark {
-    color: #e5e3e8;
-    background-color: #201c2b;
-}
-
-h2 {
-    display: inline;
-    font-size: 1em;
-    font-weight: normal;
-    margin: 0;
-    padding: 0;
-}
-
 ul {
     padding: 0.5em 0;
     margin: 0;
@@ -69,48 +42,6 @@ ul > li > figure > figcaption {
 small {
     opacity: 0.7;
     font-size: 0.6rem;
-}
-
-summary {
-    padding: 0.25em;
-    background-color: #6441A4;
-    color: #e5e3e8;
-    border-radius: 2px;
-    overflow: hidden;
-    line-height: 1.1em;
-    cursor: default;
-}
-
-summary a {
-    color: #e5e3e8;
-    float: right;
-    border-left: 1px solid #fff;
-    height: 100%;
-    padding: 0 0.25em;
-    margin: -0.25em 0;
-    margin-right: -0.25em;
-    line-height: 1.6em;
-    text-decoration: none;
-}
-
-summary a:hover {
-    background-color: #7d5bbe;
-}
-
-.dark summary a {
-    border-left-color: #252328;
-}
-
-details {
-    margin-bottom: 0.25em;
-    background-color: #eaeaea;
-    border-radius: 2px;
-    color: #232127;
-}
-
-.dark details {
-    background-color: #252328;
-    color: #e5e3e8;
 }
 
 #noemotes,

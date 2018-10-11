@@ -25,17 +25,59 @@
            2,
            3
         ],
+        config: {
+            bttv_expanded: false,
+            bttv_title: '',
+            bttv_visible: true,
+            ffz_expanded: false,
+            ffz_title: '',
+            ffz_visible: true,
+            labels: true,
+            sub_action: '',
+            sub_expanded_1: true,
+            sub_expanded_2: true,
+            sub_expanded_3: true,
+            sub_title: '',
+            sub_visible: true,
+            tier_title_1: '',
+            tier_title_2: '',
+            tier_title_3: '',
+            sub_tooltip: '',
+            popout_expand: true
+        },
         loaded: false,
+        loading: false,
+        receivedData: {
+            auth: false,
+            config: false
+        },
         visibleCredits: [],
         setAuth: function(auth) {
             this.channelId = auth.channelId;
             this.clientId = auth.clientId;
+            this.receivedData.auth = true;
 
-            if(!this.loaded) {
+            twitch.rig.log('got auth');
+
+            if(!this.loading && !this.loaded && this.receivedData.config) {
                 this.updatePanel().catch(function(e) {
                     twitch.rig.log(e.message);
                 });
             }
+        },
+        setConfig: function(config) {
+            this.config = config;
+            twitch.rig.log('got config');
+            this.receivedData.config = true;
+            if(!this.loading && this.receivedData.auth) {
+                this.updatePanel().catch(function(e) {
+                    twitch.rig.log(e.message);
+                });
+            }
+        },
+
+        noSectionsVisible: function() {
+            return !this.config.sub_visible && !this.config.bttv_visible && !this.config.ffz_visible;
         },
 
         doneLoading: function() {
@@ -53,16 +95,46 @@
             return location.search.includes("popout=true");
         },
 
+        isProd: function() {
+            return location.search.includes("state=released");
+        },
+
+        getExpandedPref: function(type) {
+            switch(type) {
+                case this.TYPE.BTTV:
+                    return this.config.bttv_expanded;
+                case this.TYPE.FFZ:
+                    return this.config.ffz_expanded;
+            }
+        },
+
+        needsChannelInfo: function() {
+            return (!this.username && this.config.bttv_visible) || (this.canHaveEmotes === undefined && this.config.sub_visible);
+        },
+
         updatePanel: function() {
-            return this.getChannelInfo().then(function() {
+            twitch.rig.log('loading panel');
+            if(this.noSectionsVisible()) {
+                this.loaded = true;
+                this.noEmotes();
+                return;
+            }
+            this.loading = true;
+            var promise = Promise.resolve();
+            if(this.needsChannelInfo()) {
+                twitch.rig.log("needs channel info");
+                promise = this.getChannelInfo();
+            }
+            return promise.then(function() {
                 var gracefulFail = function() { return []; };
                 return Promise.all([
-                    EmotesPanel.getEmotes().catch(gracefulFail),
-                    EmotesPanel.getBTTVEmotes().catch(gracefulFail),
-                    EmotesPanel.getFFZEmotes().catch(gracefulFail)
+                    EmotesPanel.config.sub_visible ? EmotesPanel.getEmotes().catch(gracefulFail) : Promise.resolve([]),
+                    EmotesPanel.config.bttv_visible ? EmotesPanel.getBTTVEmotes().catch(gracefulFail) : Promise.resolve([]),
+                    EmotesPanel.config.ffz_visible ? EmotesPanel.getFFZEmotes().catch(gracefulFail) : Promise.resolve([])
                 ]);
             }).then(function(emoteSets) {
                 EmotesPanel.loaded = true;
+                EmotesPanel.loading = false;
                 var typeMap = [
                     EmotesPanel.TYPE.TWITCH,
                     EmotesPanel.TYPE.BTTV,
@@ -74,11 +146,12 @@
                 var isPopout = EmotesPanel.isPopout();
                 for(var i = 0; i < emoteSets.length; ++i) {
                     if(emoteSets[i].length) {
-                        if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
+                        if(typeMap[i] === EmotesPanel.TYPE.TWITCH && EmotesPanel.config.sub_visible) {
                             for(var j = 0; j < emoteSets[i].length; ++j) {
                                 var subPlan = emoteSets[i][j];
                                 if(subPlan.emotes.length) {
-                                    var section = EmotesPanel.makeEmoteSection(typeMap[i] + subPlan.type, subPlan.emotes, true);
+                                    var tier = EmotesPanel.getTierFromPrice(subPlan.type);
+                                    var section = EmotesPanel.makeEmoteSection(typeMap[i] + subPlan.type, subPlan.emotes, EmotesPanel.config["sub_expanded_" + tier]);
                                     base.appendChild(section);
                                     addedSomeEmotes = true;
                                     hasTwitchEmotes = true;
@@ -86,7 +159,8 @@
                             }
                         }
                         else {
-                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i], !hasTwitchEmotes || isPopout);
+                            var expandSection = (EmotesPanel.config.popout_expand && isPopout) || EmotesPanel.getExpandedPref(typeMap[i]);
+                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i], expandSection);
                             base.appendChild(section);
                             if(!addedSomeEmotes) {
                                 addedSomeEmotes = !!emoteSets[i].length;
@@ -101,7 +175,7 @@
                 else {
                     EmotesPanel.doneLoading();
                 }
-            }).catch(console.error);
+            }).catch(twitch.rig.log);
         },
 
         getTierFromPrice: function(price) {
@@ -119,24 +193,24 @@
             var header = document.createElement('summary');
             var heading = document.createElement("h2");
 
-            if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
-                var price = type.substr(EmotesPanel.TYPE.TWITCH.length);
+            if(type.startsWith(this.TYPE.TWITCH)) {
+                var price = type.substr(this.TYPE.TWITCH.length);
                 var tier = this.getTierFromPrice(price);
-                heading.textContent = "Twitch Subscription (Tier " + tier + ")";
+                heading.textContent = (this.config.sub_title || "Twitch Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
 
                 //TODO don't show for plans user is already subbed for.
                 var link = document.createElement("a");
                 link.target = '_blank';
                 link.href = 'https://www.twitch.tv/products/' + this.username + this.TIERS[tier];
-                link.title = "Subscribe for " + price;
-                link.textContent = "Get";
+                link.title = (this.config.sub_tooltip || "Subscribe for") + " " + price;
+                link.textContent = this.config.sub_action || "Get";
                 heading.appendChild(link);
             }
-            else if(type === EmotesPanel.TYPE.FFZ) {
-                heading.textContent = "FrankerFaceZ";
+            else if(type === this.TYPE.FFZ) {
+                heading.textContent = this.config.ffz_title || "FrankerFaceZ";
             }
-            else if(type === EmotesPanel.TYPE.BTTV) {
-                heading.textContent = "BetterTTV";
+            else if(type === this.TYPE.BTTV) {
+                heading.textContent = this.config.bttv_title || "BetterTTV";
             }
 
             header.appendChild(heading);
@@ -157,20 +231,24 @@
                 }
                 var figure = document.createElement("figure");
                 figure.appendChild(image);
-                var caption = document.createElement("figcaption");
-                caption.textContent = emote.name;
-                figure.appendChild(caption);
+                if(this.config.labels) {
+                    var caption = document.createElement("figcaption");
+                    caption.textContent = emote.name;
+                    figure.appendChild(caption);
+                }
                 var item = document.createElement("li");
                 item.appendChild(figure);
                 list.appendChild(item);
             }
-            list.addEventListener("click", function(e) {
-                if(e.detail > 1 && e.target.tagName.toLowerCase() == 'img') {
-                    var caption = e.target.parentNode.getElementsByTagName('figcaption')[0];
-                    var selection = document.getSelection();
-                    selection.selectAllChildren(caption);
-                }
-            }, true);
+            if(this.config.labels) {
+                list.addEventListener("click", function(e) {
+                    if(e.detail > 1 && e.target.tagName.toLowerCase() == 'img') {
+                        var caption = e.target.parentNode.getElementsByTagName('figcaption')[0];
+                        var selection = document.getSelection();
+                        selection.selectAllChildren(caption);
+                    }
+                }, true);
+            }
             return list;
         },
 
@@ -192,28 +270,28 @@
             if(this.visibleCredits.length == 0) {
                 document.getElementById("credits").className = '';
             }
-            if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
+            if(type.startsWith(this.TYPE.TWITCH)) {
                 prefix = 'sub';
-                if(this.visibleCredits.indexOf(EmotesPanel.TYPE.BTTV) > -1) {
+                if(this.visibleCredits.indexOf(this.TYPE.BTTV) > -1) {
                     showAnd = 'bttv';
                 }
-                else if(this.visibleCredits.indexOf(EmotesPanel.TYPE.FFZ) > -1) {
+                else if(this.visibleCredits.indexOf(this.TYPE.FFZ) > -1) {
                     showAnd = 'ffz';
                 }
-                saveType = EmotesPanel.TYPE.TWITCH;
+                saveType = this.TYPE.TWITCH;
             }
-            else if(type === EmotesPanel.TYPE.FFZ) {
+            else if(type === this.TYPE.FFZ) {
                 prefix = 'ffz';
-                if(this.visibleCredits.indexOf(EmotesPanel.TYPE.BTTV) > -1 || this.visibleCredits.indexOf(EmotesPanel.TYPE.TWITCH) > -1) {
+                if(this.visibleCredits.indexOf(this.TYPE.BTTV) > -1 || this.visibleCredits.indexOf(this.TYPE.TWITCH) > -1) {
                     showAnd = 'ffz';
                 }
             }
-            else if(type === EmotesPanel.TYPE.BTTV) {
+            else if(type === this.TYPE.BTTV) {
                 prefix = 'bttv';
-                if(this.visibleCredits.indexOf(EmotesPanel.TYPE.TWITCH) > -1) {
+                if(this.visibleCredits.indexOf(this.TYPE.TWITCH) > -1) {
                     showAnd = 'bttv';
                 }
-                else if(this.visibleCredits.indexOf(EmotesPanel.TYPE.FFZ) > -1 && this.visibleCredits.length == 1) {
+                else if(this.visibleCredits.indexOf(this.TYPE.FFZ) > -1 && this.visibleCredits.length == 1) {
                     showAnd = 'ffz';
                 }
             }
@@ -241,7 +319,7 @@
                 if(user.data.length) {
                     EmotesPanel.canHaveEmotes = !!user.data[0].broadcaster_type.length;
                     EmotesPanel.username = user.data[0].login;
-                    if(EmotesPanel.channelId == '24261394') {
+                    if(!EmotesPanel.isProd() && EmotesPanel.channelId == '24261394') {
                         EmotesPanel.canHaveEmotes = true;
                     }
                 }
@@ -364,5 +442,15 @@
 
     twitch.onContext(function(context) {
         EmotesPanel.setTheme(context.theme);
-    })
+    });
+
+    twitch.configuration.onChanged(function() {
+        if(twitch.configuration.broadcaster) {
+            EmotesPanel.setConfig(JSON.parse(twitch.configuration.broadcaster.content));
+        }
+        else {
+            // We just want to invoke the setConfig callback in this case.
+            EmotesPanel.setConfig(EmotesPanel.config);
+        }
+    });
 })();
