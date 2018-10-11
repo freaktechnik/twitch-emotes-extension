@@ -4,7 +4,7 @@
   "description": "Twitch extension that displays emotes of channel",
   "main": "index.js",
   "scripts": {
-    "build": "zip -9 -y -r -q -j emotes-showcase.zip public/config.css public/config.html public/config.js public/panel.html public/polyfill.js public/viewer.css public/viewer.js"
+    "build": "zip -9 -y -r -q -j emotes-showcase.zip public/config.css public/config.html public/config.js public/panel.html public/polyfill.js public/viewer.css public/viewer.js public/model.js public/shared.css"
   },
   "keywords": [
     "twitch",
@@ -20,6 +20,8 @@
     "public/panel.html",
     "public/polyfill.js",
     "public/viewer.css",
-    "public/viewer.js"
+    "public/viewer.js",
+    "public/model.js",
+    "public/shared.css"
   ]
 }
