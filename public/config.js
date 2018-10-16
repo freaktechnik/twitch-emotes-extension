@@ -14,6 +14,17 @@
             return this.config && this.auth;
         }
     };
+    var unsaved = false;
+    function showUnsaved() {
+        unsaved = true;
+        document.getElementById("unsaved").className = '';
+        document.getElementById("saved").className = 'hidden';
+    }
+    function hideUnsaved() {
+        unsaved = false;
+        document.getElementById("unsaved").className = 'hidden';
+        document.getElementById("saved").className = '';
+    }
     function addEmotes(sectionId, emotes, tooltipExtra) {
         tooltipExtra = tooltipExtra || '';
         var section = document.getElementById(sectionId + "-emotes");
@@ -118,7 +129,7 @@
     var saveCallTimeout;
     var saveTimeout = 1000;
     function updateConfiguration() {
-        //TODO add save indicator so stuff doesn't get lost.
+        showUnsaved();
         if(saveCallTimeout) {
             clearTimeout(saveCallTimeout);
         }
@@ -143,6 +154,7 @@
             twitch.configuration.set('broadcaster', CONFIG_VERSION, JSON.stringify(data));
             document.getElementById("reset").disabled = isDefault;
             saveCallTimeout = undefined;
+            hideUnsaved();
         }, saveTimeout);
     }
     function reset() {
@@ -169,4 +181,10 @@
         }
         document.getElementById('reset').addEventListener("click", reset);
     }, false);
+    window.addEventListener("beforeunload", function(e) {
+        if(unsaved) {
+            e.preventDefault();
+            e.returnValue = "Configuration not yet saved";
+        }
+    });
 })();

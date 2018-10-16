@@ -18,6 +18,10 @@ button:hover:not(:disabled) {
     background-color: #7d5bbe;
 }
 
+header {
+    margin-bottom: 0.5em;
+}
+
 p {
     padding: 0.5em 0.5em;
     margin: 0;

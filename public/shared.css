@@ -17,6 +17,11 @@ body.dark {
     background-color: #201c2b;
 }
 
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+
 h2 {
     display: inline;
     font-size: 1em;
