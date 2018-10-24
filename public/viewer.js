@@ -175,7 +175,7 @@
             if(type.startsWith(this.TYPE.TWITCH)) {
                 var price = type.substr(this.TYPE.TWITCH.length);
                 var tier = this.getTierFromPrice(price);
-                heading.textContent = (this.config.sub_title || "Twitch Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
+                heading.textContent = (this.config.sub_title || "Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
 
                 //TODO don't show for plans user is already subbed for.
                 var link = document.createElement("a");
