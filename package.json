@@ -23,5 +23,6 @@
     "public/viewer.js",
     "public/model.js",
     "public/shared.css"
-  ]
+  ],
+  "private": true
 }
