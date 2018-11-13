@@ -31,7 +31,8 @@
             tier_title_2: '',
             tier_title_3: '',
             sub_tooltip: '',
-            popout_expand: true
+            popout_expand: true,
+            bttv_animated: true
         },
         loaded: false,
         loading: false,
@@ -136,7 +137,13 @@
                         }
                         else {
                             var expandSection = (EmotesPanel.config.popout_expand && isPopout) || EmotesPanel.getExpandedPref(typeMap[i]) || (!twitch.configuration.broadcaster && !window.EmotesModel.canHaveEmotes);
-                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emoteSets[i], expandSection);
+                            var emotes = emoteSets[i];
+                            if(typeMap[i] == EmotesPanel.TYPE.BTTV && !EmotesPanel.config.bttv_animated) {
+                                emotes = emotes.filter(function(emote) {
+                                    return !emote.animated;
+                                });
+                            }
+                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emotes, expandSection);
                             base.appendChild(section);
                             if(!addedSomeEmotes) {
                                 addedSomeEmotes = !!emoteSets[i].length;

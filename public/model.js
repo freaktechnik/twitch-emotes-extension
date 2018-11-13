@@ -112,7 +112,8 @@
                                 return {
                                     name: emote.code,
                                     url: EmotesModel.makeEmoteUrl(emote.id),
-                                    srcset: EmotesModel.makeSrcSet(emote.id)
+                                    srcset: EmotesModel.makeSrcSet(emote.id),
+                                    animated: false
                                 };
                             })
                         });
@@ -135,7 +136,8 @@
                         url: json.urlTemplate.replace('{{id}}', e.id).replace('{{image}}', '1x'),
                         srcset: EmotesModel.BTTV_SIZES.map(function(s) {
                             return json.urlTemplate.replace("{{id}}", e.id).replace('{{image}}', s + 'x') + ' ' + s + 'x';
-                        }).join(',')
+                        }).join(','),
+                        animated: e.imageType === 'gif'
                     };
                 });
             });
@@ -156,7 +158,8 @@
                             return emote.urls[s] + ' ' + s + 'x';
                         }).join(', '),
                         height: emote.height,
-                        width: emote.width
+                        width: emote.width,
+                        animated: false
                     };
                 });
             })
