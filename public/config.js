@@ -127,7 +127,7 @@
         }
     });
     var saveCallTimeout;
-    var saveTimeout = 1000;
+    var saveTimeout = 3000; // can update the config 20 times every minute, so allow changes to be saved every three seconds.
     function updateConfiguration() {
         showUnsaved();
         if(saveCallTimeout) {
