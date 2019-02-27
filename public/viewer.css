@@ -19,13 +19,18 @@ ul > li > figure {
 }
 
 ul > li > figure img {
-    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
+    height: auto;
+    width: auto;
     padding-bottom: 0.2em;
     padding-left: 0.25em;
     padding-right: 0.25em;
 }
 
-.dark ul > li > figure img {
+.shadows ul > li > figure img {
+    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
+}
+
+.shadows.dark ul > li > figure img {
     background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
 }
 

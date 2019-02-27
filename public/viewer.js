@@ -32,7 +32,8 @@
             tier_title_3: '',
             sub_tooltip: '',
             popout_expand: true,
-            bttv_animated: true
+            bttv_animated: true,
+            shadows: true
         },
         loaded: false,
         loading: false,
@@ -97,6 +98,9 @@
                 return;
             }
             this.loading = true;
+            if (!this.config.shadows) {
+                document.body.classList.remove('shadows');
+            }
             var promise = Promise.resolve();
             if(this.needsChannelInfo()) {
                 twitch.rig.log("needs channel info");
