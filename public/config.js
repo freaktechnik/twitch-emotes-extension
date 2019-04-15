@@ -4,8 +4,10 @@
     var CONFIG_VERSION = "1";
     var DEFAULT_FALSE = [
         'bttv_expanded',
-        'ffz_expanded'
+        'ffz_expanded',
+        'bttv_animated'
     ];
+    var details = [];
     var hasSubEmotes = false;
     var received = {
         config: false,
@@ -25,9 +27,101 @@
         document.getElementById("unsaved").className = 'hidden';
         document.getElementById("saved").className = '';
     }
+    function hookUpDetails() {
+        var detailsEditor = document.getElementsByClassName("details");
+        for(var i = 0; i < detailsEditor.length; ++i) {
+            detailsEditor[i].getElementsByTagName("textarea")[0].addEventListener("input", function() {
+                var emote = this.getAttribute('data-name');
+                var hadEmote = false;
+                for(var j = 0; j < details.length; ++j) {
+                    if(details[j].name === emote) {
+                        hadEmote = true;
+                        if(this.value.length) {
+                            details[j].description = this.value;
+                        }
+                        else {
+                            details.splice(j, 1);
+                        }
+                    }
+                }
+                if(!hadEmote && this.value.length) {
+                    details.push({
+                        name: emote,
+                        description: this.value
+                    });
+                }
+                updateConfiguration();
+            }, false);
+        }
+    }
+    function editEmote(item, emote) {
+        var detailsEditor = item.parentNode.parentNode.getElementsByClassName('details')[0];
+        if(item.className.indexOf('expandable') !== -1) {
+            if(detailsEditor.className.indexOf('hidden') === -1) {
+                for(var i = 0; i < item.parentNode.children.length; ++i) {
+                    if(item.parentNode.children[i].className === 'highlighted') {
+                        item.parentNode.children[i].className = 'expandable';
+                    }
+                }
+            }
+            item.className = item.className.replace('expandable', 'highlighted');
+            var desc = detailsEditor.getElementsByTagName("textarea")[0];
+            desc.setAttribute('data-name', emote.name);
+            var existingDetails;
+            for(var i = 0; i < details.length; ++i) {
+                if(details[i].name === emote.name) {
+                    existingDetails = details[i];
+                    break;
+                }
+            }
+            if(existingDetails) {
+                desc.value = existingDetails.description;
+            }
+            else {
+                desc.value = '';
+            }
+
+            var figure = detailsEditor.getElementsByTagName('figure')[0];
+            var img = figure.getElementsByTagName('img')[0];
+            img.src = emote.url;
+            if(emote.hasOwnProperty('srcset')) {
+                img.srcset = emote.srcset;
+            }
+            else {
+                img.srcset = '';
+            }
+            img.alt = emote.name;
+            img.title = emote.name;
+            figure.getElementsByTagName('figcaption')[0].textContent = emote.name;
+
+            detailsEditor.className = detailsEditor.className.replace('hidden', '');
+        }
+        else {
+            item.className = item.className.replace('highlighted', 'expandable');
+            detailsEditor.className += ' hidden';
+        }
+    }
     function addEmotes(sectionId, emotes, tooltipExtra) {
         tooltipExtra = tooltipExtra || '';
         var section = document.getElementById(sectionId + "-emotes");
+        var bttvChecked = false;
+        if(sectionId == 'bttv') {
+            var animated = document.getElementById("bttv_animated");
+            bttvChecked = animated.checked;
+            animated.addEventListener("change", function() {
+                for(var j = 0; j < emotes.length; ++j) {
+                    if(emotes[j].animated) {
+                        var item = section.querySelector("[alt=\"" + emotes[j].name + "\"]").parentNode.parentNode;
+                        if(this.checked) {
+                            item.className = item.className.replace('invisible', '');
+                        }
+                        else {
+                            item.className += ' invisible';
+                        }
+                    }
+                }
+            }, false);
+        }
         for(var i = 0; i < emotes.length; ++i) {
             var emote = emotes[i];
             var image = new Image(emote.width, emote.height);
@@ -40,13 +134,17 @@
             var figure = document.createElement("figure");
             figure.appendChild(image);
             var item = document.createElement("li");
+            item.className = 'expandable';
+            if(sectionId == 'bttv' && emote.animated && !bttvChecked) {
+                item.className += ' invisible';
+            }
+            item.addEventListener('click', editEmote.bind(null, item, emote), false);
             item.appendChild(figure);
             section.appendChild(item);
         }
     }
     function updateDefaults() {
         if(!hasSubEmotes && received.ready() && !twitch.configuration.broadcaster) {
-            twitch.rig.log("Set initial default config without sub emotes");
             for(var k = 0; k < DEFAULT_FALSE.length; ++k) {
                 document.getElementById(DEFAULT_FALSE[k]).checked = true;
             }
@@ -55,15 +153,21 @@
         }
     }
     twitch.onContext(function(context) {
-        document.body.classList = context.theme;
+        if(document.body.className.indexOf('dark') + document.body.className.indexOf('light') === -2) {
+            document.body.className += ' ' + context.theme;
+        }
+        else {
+            document.body.className = document.body.className.replace(/light|dark/, context.theme);
+        }
     });
     twitch.onAuthorized(function(auth) {
         // Race condition
         if(!window.EmotesModel.channelId) {
-          window.EmotesModel.setAuth(auth);
+            window.EmotesModel.setAuth(auth);
         }
         window.EmotesModel.getChannelInfo().then(function() {
             var gracefulFail = function() { return []; };
+            document.getElementById("broadcaster_name_override").setAttribute("placeholder", window.EmotesModel.username);
             return Promise.all([
                 window.EmotesModel.getEmotes().catch(gracefulFail),
                 window.EmotesModel.getBTTVEmotes().catch(gracefulFail),
@@ -95,9 +199,16 @@
         });
     });
     twitch.configuration.onChanged(function() {
+        window.EmotesModel.loadConfig();
         received.config = true;
         if(twitch.configuration.broadcaster && twitch.configuration.broadcaster.version == CONFIG_VERSION) {
             var data = JSON.parse(twitch.configuration.broadcaster.content);
+            if(data.hasOwnProperty('shadows') && !data.shadows) {
+                document.body.className = document.body.className.replace('shadows', '');
+            }
+            if(data.hasOwnProperty('details') && data.details.length) {
+                details = data.details;
+            }
             var keys = Object.keys(data);
             var id, input;
             var isDefault = true;
@@ -128,37 +239,54 @@
     });
     var saveCallTimeout;
     var saveTimeout = 3000; // can update the config 20 times every minute, so allow changes to be saved every three seconds.
+    function actuallySave() {
+        var inputs = document.getElementsByTagName('input');
+        var data = {
+            details: details
+        };
+        var isDefault = true;
+        for(var i = 0; i < inputs.length; ++i) {
+            if(inputs[i].type == 'checkbox') {
+                data[inputs[i].id] = inputs[i].checked;
+                if(isDefault && inputs[i].checked != (DEFAULT_FALSE.indexOf(inputs[i].id) === -1)) {
+                    isDefault = false;
+                }
+            }
+            else {
+                data[inputs[i].id] = inputs[i].value;
+                if(isDefault && inputs[i].value) {
+                    isDefault = false;
+                }
+            }
+        }
+        twitch.configuration.set('broadcaster', CONFIG_VERSION, JSON.stringify(data));
+        document.getElementById("reset").disabled = isDefault;
+        if(saveCallTimeout) {
+            clearTimeout(saveCallTimeout);
+        }
+        saveCallTimeout = undefined;
+        hideUnsaved();
+    }
     function updateConfiguration() {
+        var shadowInput = document.getElementById('shadows');
+        if (!shadowInput.checked) {
+            document.body.className = document.body.className.replace('shadows', '');
+        }
+        else if(document.body.className.indexOf('shadows') === -1) {
+            document.body.className += ' shadows';
+        }
         showUnsaved();
         if(saveCallTimeout) {
             clearTimeout(saveCallTimeout);
         }
-        saveCallTimeout = setTimeout(function() {
-            var inputs = document.getElementsByTagName('input');
-            var data = {};
-            var isDefault = true;
-            for(var i = 0; i < inputs.length; ++i) {
-                if(inputs[i].type == 'checkbox') {
-                    data[inputs[i].id] = inputs[i].checked;
-                    if(isDefault && inputs[i].checked != (DEFAULT_FALSE.indexOf(inputs[i].id) === -1)) {
-                        isDefault = false;
-                    }
-                }
-                else {
-                    data[inputs[i].id] = inputs[i].value;
-                    if(isDefault && inputs[i].value) {
-                        isDefault = false;
-                    }
-                }
-            }
-            twitch.configuration.set('broadcaster', CONFIG_VERSION, JSON.stringify(data));
-            document.getElementById("reset").disabled = isDefault;
-            saveCallTimeout = undefined;
-            hideUnsaved();
-        }, saveTimeout);
+        saveCallTimeout = setTimeout(actuallySave, saveTimeout);
     }
     function reset() {
         var inputs = document.getElementsByTagName('input');
+        if(!document.body.className.indexOf('shadows') === -1) {
+            document.body.className += ' shadows';
+        }
+        details = [];
         for(var i = 0; i < inputs.length; ++i) {
             if(inputs[i].type == 'checkbox') {
                 inputs[i].checked = DEFAULT_FALSE.indexOf(inputs[i].id) === -1;
@@ -180,11 +308,13 @@
             }
         }
         document.getElementById('reset').addEventListener("click", reset);
+        hookUpDetails();
     }, false);
     window.addEventListener("beforeunload", function(e) {
         if(unsaved) {
             e.preventDefault();
             e.returnValue = "Configuration not yet saved";
+            actuallySave();
         }
     });
 })();

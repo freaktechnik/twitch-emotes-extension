@@ -20,6 +20,13 @@
             this.clientId = auth.clientId;
         },
 
+        ebsURL: 'https://te.humanoids.be/emotesets/',
+        loadConfig: function() {
+            if(twitch.configuration.global) {
+                this.ebsURL = JSON.parse(twitch.configuration.global.content).ebs;
+            }
+        },
+
         isPopout: function() {
             return location.search.includes("popout=true");
         },
@@ -79,7 +86,7 @@
                 return Promise.reject("User can not have twitch emotes");
             }
             //TODO use official Twitch API if there ever is one (hint, hint)
-            return fetch('https://te.humanoids.be/emotesets/' + this.channelId + '.json').then(function(res) {
+            return fetch(this.ebsURL + this.channelId + '.json').then(function(res) {
                 if(res.ok && res.status === 200) {
                     return res.json();
                 }

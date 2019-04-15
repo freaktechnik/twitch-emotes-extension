@@ -8,8 +8,9 @@ ul {
 
 ul > li {
     display: inline-block;
-    margin: 0.5em 0.25em;
-    padding: 0;
+    margin: 0.25em 0.125em;
+    padding: 0.25em 0.125em;
+    box-sizing: border-box;
 }
 
 ul > li > figure {
@@ -26,14 +27,6 @@ ul > li > figure img {
     padding-right: 0.25em;
 }
 
-.shadows ul > li > figure img {
-    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
-}
-
-.shadows.dark ul > li > figure img {
-    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
-}
-
 ul > li > figure > figcaption {
     font-size: 0.7em;
     word-break: break-all;
@@ -42,6 +35,23 @@ ul > li > figure > figcaption {
 small {
     opacity: 0.7;
     font-size: 0.6rem;
+}
+
+figure > div {
+    position: relative;
+    display: inline-block;
+}
+
+.lock {
+    text-align: right;
+    top: -0.4em;
+    right: -0.125em;
+    position: absolute;
+}
+
+#overlay figure figcaption,
+#overlay p {
+    user-select: text;
 }
 
 #noemotes,
@@ -64,4 +74,108 @@ small {
 
 .dark #loading g {
     stroke: #e5e3e8;
+}
+
+#overlay {
+    margin: 1em;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #eaeaea;
+    z-index: 4;
+    border-radius: 2px;
+    box-shadow: 0 0 3em #141217;
+}
+
+.dark #overlay {
+    background: #252328;
+}
+
+#overlayclose {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    background: none;
+    border: none;
+    font-size: 1em;
+    color: currentColor;
+    border-radius: 2px;
+}
+
+#overlayclose:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+#emotewrapper {
+    display: inline-block;
+    border-radius: 2px;
+    padding: 1em;
+    padding-bottom: 0.5em;
+    margin: 0 1em;
+    margin-top: 3em;
+    margin-bottom: 0.5em;
+
+    color: #232127;
+    background-color: #fff;
+}
+
+#emotewrapper.dark {
+    color: #e5e3e8;
+    background-color: #201c2b;
+}
+
+.bg-toggle {
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    display: inline-block;
+    line-height: 0;
+    padding: 0;
+    margin-bottom: 1em;
+    overflow: hidden;
+    height: 1.2em;
+}
+
+
+.dark #emotewrapper .bg-toggle {
+    border-color: #141217;
+}
+
+.bg-toggle button {
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: none;
+    font-size: 1em;
+    width: 1.4em;
+    height: 1.2em;
+    line-height: 1.2em;
+}
+
+.bg-toggle button[data-theme="light"] {
+    background-color: #fff;
+}
+
+.bg-toggle button[data-theme="dark"] {
+    background-color: #201c2b;
+}
+
+#overlaydesc {
+    margin-top: 0;
+}
+
+.emote-actions button {
+    margin: 0 0.25em;
+    margin-bottom: 1em;
+    background-color: #6441A4;
+    color: #e5e3e8;
+    border: none;
+    border-radius: 2px;
+    font-size: 1em;
+    padding: 0.4em;
+}
+
+.emote-actions button:hover {
+    background-color: #7d5bbe;
 }

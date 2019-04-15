@@ -38,12 +38,18 @@ summary {
     overflow: hidden;
     line-height: 1.1em;
     cursor: default;
+    margin: 0 -1px;
 }
 
+summary button,
 summary a {
     color: #e5e3e8;
     float: right;
+    border: none;
     border-left: 1px solid #fff;
+    background-color: #6441A4;
+    font-size: 1rem;
+    font-family: sans-serif;
     height: 100%;
     padding: 0 0.25em;
     margin: -0.25em 0;
@@ -52,10 +58,12 @@ summary a {
     text-decoration: none;
 }
 
+summary button:hover,
 summary a:hover {
     background-color: #7d5bbe;
 }
 
+.dark summary button,
 .dark summary a {
     border-left-color: #252328;
 }
@@ -65,9 +73,40 @@ details {
     background-color: #eaeaea;
     border-radius: 2px;
     color: #232127;
+    box-sizing: border-box;
+    border: 1px solid #d9d9d9;
+    border-top: none;
 }
 
 .dark details {
     background-color: #252328;
     color: #e5e3e8;
+    border-color: #141217;
+}
+
+.shadows ul > li > figure img {
+    background: radial-gradient(ellipse 3em 0.5em at center calc(100% - 0.2em), rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
+}
+
+.shadows.dark ul > li > figure img {
+    background: radial-gradient(ellipse 3em 0.5em at center calc(100% - 0.2em), rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
+}
+
+.expandable:hover {
+    box-shadow: 0 0 2px #eae93f;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.highlighted {
+    color: #232127;
+    box-shadow: 0 0 2px #eae93f;
+    background: #eae93f;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.shadows ul > li.highlighted > figure img {
+    background: radial-gradient(ellipse 3em 0.5em at center calc(100% - 0.2em), rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
 }

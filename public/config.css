@@ -46,8 +46,9 @@ ul {
 
 ul > li {
     display: inline-block;
-    margin: 0.5em 0.25em;
-    padding: 0;
+    margin: 0.25em 0.125em;
+    padding: 0.25em 0.125em;
+    box-sizing: border-box;
 }
 
 ul > li > figure {
@@ -57,17 +58,35 @@ ul > li > figure {
 }
 
 ul > li > figure img {
-    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(30,30,30,30.65) 0%,rgba(30,30,30,0) 35%);
     padding-bottom: 0.2em;
     padding-left: 0.25em;
     padding-right: 0.25em;
 }
 
-.dark ul > li > figure img {
-    background: radial-gradient(ellipse 3em 0.5em at bottom 0.2em center, rgba(225,225,225,0.65) 0%,rgba(225,225,225,0) 40%);
-}
-
 small {
     opacity: 0.7;
     font-size: 0.6rem;
+}
+
+.invisible {
+    opacity: 0.5;
+}
+
+.details {
+    width: 100%;
+}
+
+.details textarea {
+    width: 100%;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.details figure {
+    margin: 0.25em;
+}
+
+.details figure img,
+.details figure figcaption {
+    display: inline-block;
 }

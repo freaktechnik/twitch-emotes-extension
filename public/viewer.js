@@ -32,13 +32,17 @@
             tier_title_3: '',
             sub_tooltip: '',
             popout_expand: true,
-            bttv_animated: true,
-            shadows: true
+            bttv_animated: false,
+            shadows: true,
+            details: [],
+            broadcaster_name_override: '',
         },
         loaded: false,
         loading: false,
         receivedConfig: false,
         visibleCredits: [],
+        subTier: 0,
+        isMobile: false,
         setAuth: function(auth) {
             // Race condition
             if(!window.EmotesModel.channelId) {
@@ -59,6 +63,44 @@
                     twitch.rig.log(e.message);
                 });
             }
+        },
+
+        updateViewer: function(isSubbed) {
+            isSubbed = isSubbed || false;
+            var subStatus = twitch.viewer.subscriptionStatus;
+            this.subTier = this.isSubbed() ? 0 : parseInt(subStatus.tier[0], 10);
+            if(isSubbed && this.subTier === 0) {
+                this.subTier = 1;
+            }
+            if(!this.loading && window.EmotesMode.channelId && this.receivedConfig) {
+                this.updatePanel(true);
+            }
+        },
+
+        checkMobile: function() {
+            const params = new URLSearchParams(location.search);
+            this.isMobile = params.get('platform').toLowerCase() === 'mobile';
+        },
+
+        canSub: function(tier) {
+            return !this.isMobile && !this.isSubbed(tier);
+        },
+
+        isSubbed: function(tier) {
+            tier = tier || 0;
+            return twitch.subscriptionStatus !== null && tier <= this.subTier;
+        },
+
+        getDescription: function(name) {
+            if(!this.config.details || !this.config.details.length) {
+                return '';
+            }
+            for(var i = 0; i < this.config.details.length; ++i) {
+                if(this.config.details[i].name === name) {
+                    return this.config.details[i].description;
+                }
+            }
+            return '';
         },
 
         noSectionsVisible: function() {
@@ -90,30 +132,51 @@
                 ((window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && this.config.sub_visible);
         },
 
-        updatePanel: function() {
-            twitch.rig.log('loading panel');
+        resetPanel: function() {
+            this.loaded = false;
+            document.getElementById("emotes").className = 'hidden';
+            document.getElementById("noemotes").className = 'hidden';
+            document.getElementById("credits").className = 'hidden';
+            document.getElementById("loading").className = '';
+            document.getElementById("emotes").innerHTML = '';
+            document.getElementById("subcredit").className = 'hidden';
+            document.getElementById("bttvcredit").className = 'hidden';
+            document.getElementById("ffzcredit").className = 'hidden';
+            var ands = document.getElementById("credits").getElementsByClassName('and');
+            for(var i = 0; i < ands.length; ++i) {
+                ands[i].className = 'and hidden';
+            }
+        },
+
+        updatePanel: function(cached) {
+            cached = cached || false;
+            if(this.loaded) {
+                this.resetPanel();
+            }
             if(this.noSectionsVisible()) {
                 this.loaded = true;
                 this.noEmotes();
                 return;
             }
             this.loading = true;
-            if (!this.config.shadows) {
-                document.body.classList.remove('shadows');
+            if (this.config.hasOwnProperty('shadows') && !this.config.shadows) {
+                document.body.className = document.body.className.replace('shadows', '');
             }
             var promise = Promise.resolve();
             if(this.needsChannelInfo()) {
-                twitch.rig.log("needs channel info");
                 promise = window.EmotesModel.getChannelInfo();
             }
-            return promise.then(function() {
-                var gracefulFail = function() { return []; };
-                return Promise.all([
-                    EmotesPanel.config.sub_visible ? window.EmotesModel.getEmotes().catch(gracefulFail) : Promise.resolve([]),
-                    EmotesPanel.config.bttv_visible ? window.EmotesModel.getBTTVEmotes().catch(gracefulFail) : Promise.resolve([]),
-                    EmotesPanel.config.ffz_visible ? window.EmotesModel.getFFZEmotes().catch(gracefulFail) : Promise.resolve([])
-                ]);
-            }).then(function(emoteSets) {
+            if(!cached || !this.cachedEmotes) {
+                this.cachedEmotes = promise.then(function() {
+                    var gracefulFail = function() { return []; };
+                    return Promise.all([
+                        EmotesPanel.config.sub_visible ? window.EmotesModel.getEmotes().catch(gracefulFail) : Promise.resolve([]),
+                        EmotesPanel.config.bttv_visible ? window.EmotesModel.getBTTVEmotes().catch(gracefulFail) : Promise.resolve([]),
+                        EmotesPanel.config.ffz_visible ? window.EmotesModel.getFFZEmotes().catch(gracefulFail) : Promise.resolve([])
+                    ]);
+                });
+            }
+            return this.cachedEmotes.then(function(emoteSets) {
                 EmotesPanel.loaded = true;
                 EmotesPanel.loading = false;
                 var typeMap = [
@@ -123,7 +186,6 @@
                 ];
                 var base = document.getElementById("emotes");
                 var addedSomeEmotes = false;
-                var hasTwitchEmotes = false;
                 var isPopout = window.EmotesModel.isPopout();
                 for(var i = 0; i < emoteSets.length; ++i) {
                     if(emoteSets[i].length) {
@@ -135,7 +197,6 @@
                                     var section = EmotesPanel.makeEmoteSection(typeMap[i] + subPlan.type, subPlan.emotes, EmotesPanel.config["sub_expanded_" + tier]);
                                     base.appendChild(section);
                                     addedSomeEmotes = true;
-                                    hasTwitchEmotes = true;
                                 }
                             }
                         }
@@ -179,6 +240,14 @@
             return 1;
         },
 
+        getSubLink: function(tier) {
+            var username = EmotesModel.username;
+            if(this.config.hasOwnProperty('broadcaster_name_override') && this.config.broadcaster_name_override) {
+                username = this.config.broadcaster_name_override;
+            }
+            return 'https://www.twitch.tv/products/' + username + this.TIERS[tier];
+        },
+
         makeSectionHeader: function(type) {
             var header = document.createElement('summary');
             var heading = document.createElement("h2");
@@ -188,13 +257,22 @@
                 var tier = this.getTierFromPrice(price);
                 heading.textContent = (this.config.sub_title || "Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
 
-                //TODO don't show for plans user is already subbed for.
-                var link = document.createElement("a");
-                link.target = '_blank';
-                link.href = 'https://www.twitch.tv/products/' + EmotesModel.username + this.TIERS[tier];
-                link.title = (this.config.sub_tooltip || "Subscribe for") + " " + price;
-                link.textContent = this.config.sub_action || "Get";
-                heading.appendChild(link);
+                if(this.canSub(tier)) {
+                    // var link = document.createElement("button");
+                    // link.type = "button";
+                    // link.addEventListener("click", function(e) {
+                    //     twitch.actions.subscribeToChannel({
+                    //         tier: tier + '000'
+                    //     });
+                    //     e.preventDefault();
+                    // }, false);
+                    var link = document.createElement("a");
+                    link.href = this.getSubLink(tier);
+                    link.title = (this.config.sub_tooltip || "Subscribe for") + " " + price;
+                    link.textContent = this.config.sub_action || "Get";
+                    link.target = '_blank';
+                    heading.appendChild(link);
+                }
             }
             else if(type === this.TYPE.FFZ) {
                 heading.textContent = this.config.ffz_title || "FrankerFaceZ";
@@ -208,8 +286,106 @@
             return header;
         },
 
-        makeEmoteList: function(emotes) {
+        setUpOverlay: function() {
+            document.getElementById("overlayclose").addEventListener("click", function() {
+                EmotesPanel.closeOverlay();
+            }, false);
+            var buttons = document.getElementsByClassName('bg-toggle')[0].getElementsByTagName('button');
+            var emoteWrapper = document.getElementById("emotewrapper");
+            for(var i = 0; i < buttons.length; ++i) {
+                buttons[i].addEventListener("click", function() {
+                    emoteWrapper.className = this.getAttribute("data-theme");
+                }, false);
+            }
+            document.getElementById("overlaycopy").addEventListener("click", function() {
+                var caption = emoteWrapper.getElementsByTagName('figcaption')[0];
+                var selection = document.getSelection();
+                selection.selectAllChildren(caption);
+                document.execCommand("copy");
+            }, false);
+            document.getElementById("overlaysub").addEventListener("click", function() {
+                window.open(EmotesPanel.getSubLink(EmotesPanel.currentOverlayData.tier), '_blank');
+            }, false);
+        },
+        currentOverlay: null,
+        currentOverlayData: null,
+        closeOverlay: function() {
+            this.currentOverlay.className = 'expandable';
+            this.currentOverlay = null;
+            this.currentOverlayData = null;
+            document.getElementById("overlay").className = 'hidden';
+        },
+        addOverlayListener: function(item, emote, type) {
+            item.addEventListener("click", function(e) {
+                if(item === EmotesPanel.currentOverlay) {
+                    EmotesPanel.closeOverlay();
+                    return;
+                }
+                item.className = 'highlighted';
+                if(EmotesPanel.currentOverlay) {
+                    EmotesPanel.closeOverlay();
+                }
+                var emoteWrapper = document.getElementById("emotewrapper");
+                var img = emoteWrapper.getElementsByTagName("img")[0];
+                img.src = emote.url;
+                img.alt = emote.name;
+                img.title = emote.name;
+                if(emote.hasOwnProperty("srcset")) {
+                    img.srcset = emote.srcset;
+                }
+                else {
+                    img.srcset = '';
+                }
+                emoteWrapper.className = document.body.className.replace('shadows', '');
+                emoteWrapper.getElementsByTagName("figcaption")[0].textContent = emote.name;
+
+                var emoteDescription = EmotesPanel.getDescription(emote.name);
+                var desc = document.getElementById("overlaydesc");
+                if(emoteDescription) {
+                    desc.textContent = emoteDescription;
+                    desc.className = '';
+                }
+                else {
+                    desc.className = 'hidden';
+                }
+
+                var canSub = false;
+                if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
+                    var price = type.substr(EmotesPanel.TYPE.TWITCH.length);
+                    var tier = EmotesPanel.getTierFromPrice(price);
+                    if(EmotesPanel.canSub(tier)) {
+                        emote.tier = tier;
+                        canSub = true;
+                        document.getElementById("overlaysub").className = '';
+                        document.getElementById("overlaysub").getElementsByClassName("price")[0].textContent = price;
+                        if(twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable) {
+                            document.getElementById("overlaycopy").className = 'hidden';
+                        }
+                        else {
+                            document.getElementById("overlaycopy").className = '';
+                        }
+                    }
+                }
+                if(!canSub) {
+                    document.getElementById("overlaysub").className = 'hidden';
+                    document.getElementById("overlaycopy").className = '';
+                }
+
+                EmotesPanel.currentOverlayData = emote;
+                EmotesPanel.currentOverlay = item;
+
+                document.getElementById("overlay").className = '';
+            }, false);
+        },
+
+        makeEmoteList: function(emotes, type) {
             var list = document.createElement('ul');
+            var isTwitch = type.startsWith(this.TYPE.TWITCH);
+            var tier = 0;
+            if(isTwitch) {
+                var price = type.substr(this.TYPE.TWITCH.length);
+                tier = this.getTierFromPrice(price);
+            }
             for(var i = 0; i < emotes.length; ++i) {
                 var emote = emotes[i];
                 var image = new Image(emote.width, emote.height);
@@ -219,32 +395,43 @@
                 if(emote.hasOwnProperty("srcset")) {
                     image.srcset = emote.srcset;
                 }
+                var imgWrapper = document.createElement('div');
+                imgWrapper.appendChild(image);
+                if(isTwitch && twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable && this.canSub(tier)) {
+                    var lock = document.createElement('span');
+                    lock.className = 'lock';
+                    lock.textContent = '🔒';
+                    imgWrapper.appendChild(lock);
+                }
                 var figure = document.createElement("figure");
-                figure.appendChild(image);
+                figure.appendChild(imgWrapper);
                 if(this.config.labels) {
                     var caption = document.createElement("figcaption");
                     caption.textContent = emote.name;
                     figure.appendChild(caption);
                 }
                 var item = document.createElement("li");
+                item.className = 'expandable';
+                this.addOverlayListener(item, emote, type);
                 item.appendChild(figure);
                 list.appendChild(item);
             }
-            if(this.config.labels) {
-                list.addEventListener("click", function(e) {
-                    if(e.detail > 1 && e.target.tagName.toLowerCase() == 'img') {
-                        var caption = e.target.parentNode.getElementsByTagName('figcaption')[0];
-                        var selection = document.getSelection();
-                        selection.selectAllChildren(caption);
-                    }
-                }, true);
-            }
+            // if(this.config.labels) {
+            //     list.addEventListener("click", function(e) {
+            //         if(e.detail > 1 && e.target.tagName.toLowerCase() == 'img') {
+            //             var caption = e.target.parentNode.getElementsByTagName('figcaption')[0];
+            //             var selection = document.getSelection();
+            //             selection.selectAllChildren(caption);
+            //             e.preventDefault();
+            //         }
+            //     }, true);
+            // }
             return list;
         },
 
         makeEmoteSection: function(type, emotes, open) {
             var header = this.makeSectionHeader(type);
-            var list = this.makeEmoteList(emotes);
+            var list = this.makeEmoteList(emotes, type);
 
             var wrapper = document.createElement("details");
             wrapper.appendChild(header);
@@ -296,12 +483,36 @@
         },
 
         setTheme: function(theme) {
+            if(!this.config.hasOwnProperty('shadows') || this.config.shadows) {
+                theme += ' shadows';
+            }
             document.body.className = theme;
         }
     };
 
+
     twitch.onAuthorized(function(auth) {
         EmotesPanel.setAuth(auth);
+        EmotesPanel.updateViewer();
+
+        if(twitch.features.isSubscriptionStatusAvailable) {
+            twitch.viewer.onChanged(function() {
+                EmotesPanel.updateViewer();
+            });
+        }
+        else {
+            var addedViewerChangeListener = false;
+            twitch.features.onChanged(function(feats) {
+                if(feats.indexOf('isSubscriptionStatusAvailable') !== -1 && twitch.features.isSubscriptionStatusAvailable && !addedViewerChangeListener) {
+                    twitch.viewer.onChanged(function() {
+                        EmotesPanel.updateViewer();
+                    });
+                    EmotesPanel.updateViewer();
+                    addedViewerChangeListener = true;
+                }
+            })
+        }
+        EmotesPanel.setUpOverlay();
     });
 
     twitch.onContext(function(context) {
@@ -309,6 +520,7 @@
     });
 
     twitch.configuration.onChanged(function() {
+        window.EmotesModel.loadConfig();
         if(twitch.configuration.broadcaster) {
             EmotesPanel.setConfig(JSON.parse(twitch.configuration.broadcaster.content));
         }

@@ -26,6 +26,21 @@
            </g>
           </svg>
         </div>
+        <div id="overlay" class="hidden">
+            <button id="overlayclose">×</button>
+            <div>
+                <figure id="emotewrapper" class="light">
+                    <img src="" alt="">
+                    <figcaption></figcaption>
+                </figure>
+            </div>
+            <div class="bg-toggle"><button data-theme="light" title="Light"></button><button data-theme="dark" title="Dark"></button></div>
+            <p id="overlaydesc" class="hidden"></p>
+            <div class="emote-actions">
+                <button id="overlaycopy">Copy emote code</button>
+                <button id="overlaysub" class="hidden">Subscribe to get emote (<span class="price">$4.99</span>)</button>
+            </div>
+        </div>
         <div id="emotes"></div>
         <div id="noemotes" class="hidden">Could not find any emotes for this channel</div>
         <small id="credits" class="hidden">Based on data by <span id="subcredit" class="hidden">Twitch, Twitchemotes.com for sub emotes</span><span id="bttvcredit" class="hidden"><span class="and hidden"> and </span>BetterTTV for BTTV emotes</span> <span id="ffzcredit" class="hidden"><span class="and hidden"> and </span>FrankerFaceZ for FFZ emotes</span></small>
