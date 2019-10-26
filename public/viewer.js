@@ -128,8 +128,7 @@
         },
 
         needsChannelInfo: function() {
-            return (!window.EmotesModel.username && this.config.bttv_visible) ||
-                ((window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && this.config.sub_visible);
+            return (window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && this.config.sub_visible;
         },
 
         resetPanel: function() {

@@ -1,8 +1,6 @@
 ## Changes
 
-- Use up to date BTTV API
-- Add note to channel emotes config section if there are no emotes
-- New ToS
+- Avoid API call when not necessary
 
 ## Guide
 
