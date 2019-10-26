@@ -193,6 +193,9 @@
                     addEmotes(sectionIds[i], emotes[i]);
                 }
             }
+            if(hasSubEmotes) {
+                document.getElementById("noEmotes").className = 'hidden';
+            }
             updateDefaults();
         }).catch(function(e) {
             twitch.rig.log(e.message);

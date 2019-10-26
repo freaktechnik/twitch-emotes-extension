@@ -131,18 +131,18 @@
         },
 
         getBTTVEmotes: function() {
-            return fetch('https://api.betterttv.net/2/channels/' + this.username).then(function(res) {
+            return fetch('https://api.betterttv.net/3/cached/users/twitch/' + this.channelId).then(function(res) {
                 if(res.ok && res.status === 200) {
                     return res.json();
                 }
                 throw new Error("Could not load bttv channel info");
             }).then(function(json) {
-                return json.emotes.map((e) => {
+                return json.channelEmotes.concat(json.sharedEmotes).map((e) => {
                     return {
                         name: e.code,
-                        url: json.urlTemplate.replace('{{id}}', e.id).replace('{{image}}', '1x'),
+                        url: `//cdn.betterttv.net/emote/${e.id}/1x`,
                         srcset: EmotesModel.BTTV_SIZES.map(function(s) {
-                            return json.urlTemplate.replace("{{id}}", e.id).replace('{{image}}', s + 'x') + ' ' + s + 'x';
+                            return `//cdn.betterttv.net/emote/${e.id}/${s}x ${s}x`;
                         }).join(','),
                         animated: e.imageType === 'gif'
                     };

@@ -1,6 +1,8 @@
 ## Changes
 
-- Fix how viewer is treated when isSubscriptionStatusAvailable is false.
+- Use up to date BTTV API
+- Add note to channel emotes config section if there are no emotes
+- New ToS
 
 ## Guide
 
