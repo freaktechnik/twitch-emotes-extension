@@ -1,6 +1,7 @@
 ## Changes
 
 - Avoid API call when not necessary
+- Do not add emotes of 1.5x resolution to srcset to avoid broken emote images
 
 ## Guide
 
