@@ -14,7 +14,7 @@ if (!$directory) {
 
 $entry = readdir($directory);
 while($entry !== false) {
-    if ($entry[0] !== '.') {
+    if ($entry[0] !== '.' && $entry !== '24261394.json') {
         list ( $id ) = explode('.', $entry);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'https://api.twitchemotes.com/api/v4/channels/'.$id);
@@ -23,7 +23,7 @@ while($entry !== false) {
         $data = curl_exec($ch);
         curl_close($ch);
         unset($ch);
-    
+
         $channelInfo = json_decode($data, true);
         unset($data);
         $filePath = $basePath.$id.'.json';
