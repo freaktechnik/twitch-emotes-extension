@@ -19,6 +19,7 @@ if(is_file($filePath)) {
     $mtime = $stat[9];
     if(time() - $mtime < 60) {
         $response = file_get_contents($filePath);
+        header('Content-Type: application/json');
         echo $filePath;
         exit;
     }
@@ -49,4 +50,5 @@ if($hasError) {
     unlink($errorCache);
 }
 
+header('Content-Type: application/json');
 echo $response;
