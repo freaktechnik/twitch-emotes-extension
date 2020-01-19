@@ -485,6 +485,9 @@
             if(!this.config.hasOwnProperty('shadows') || this.config.shadows) {
                 theme += ' shadows';
             }
+            if(window.matchMedia('(prefers-color-scheme: dark)')) {
+                theme = 'dark';
+            }
             document.body.className = theme;
         }
     };

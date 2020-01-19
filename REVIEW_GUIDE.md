@@ -1,6 +1,6 @@
 ## Changes
 
-- 
+- Default to dark theme if browser signals user prefers a dark theme
 
 ## Guide
 

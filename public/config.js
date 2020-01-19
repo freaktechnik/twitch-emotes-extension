@@ -154,7 +154,12 @@
     }
     twitch.onContext(function(context) {
         if(document.body.className.indexOf('dark') + document.body.className.indexOf('light') === -2) {
-            document.body.className += ' ' + context.theme;
+            if(window.matchMedia('(prefers-color-scheme: dark)')) {
+                document.body.className += ' dark';
+            }
+            else {
+                document.body.className += ' ' + context.theme;
+            }
         }
         else {
             document.body.className = document.body.className.replace(/light|dark/, context.theme);
