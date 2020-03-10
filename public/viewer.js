@@ -241,6 +241,9 @@
 
         getSubLink: function(tier) {
             var username = EmotesModel.username;
+            if(tier === 1) {
+                return 'https://www.twitch.tv/' + username + '/subscribe';
+            }
             if(this.config.hasOwnProperty('broadcaster_name_override') && this.config.broadcaster_name_override) {
                 username = this.config.broadcaster_name_override;
             }
@@ -482,11 +485,11 @@
         },
 
         setTheme: function(theme) {
+            if(window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                theme = 'dark';
+            }
             if(!this.config.hasOwnProperty('shadows') || this.config.shadows) {
                 theme += ' shadows';
-            }
-            if(window.matchMedia('(prefers-color-scheme: dark)')) {
-                theme = 'dark';
             }
             document.body.className = theme;
         }

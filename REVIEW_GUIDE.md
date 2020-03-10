@@ -1,6 +1,10 @@
 ## Changes
 
 - Default to dark theme if browser signals user prefers a dark theme
+- Use safe subscribe link for Tier 1 subs
+- Use new dark chat background for emote preview
+- Fix defaulting to dark mode behavior
+- Fix shadows when defaulting to dark mode
 
 ## Guide
 
