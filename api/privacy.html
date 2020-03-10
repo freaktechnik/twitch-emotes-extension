@@ -14,8 +14,12 @@
 
         <p>This policy primarily concerns the API provided under "te.humanoids.be",
         which the extension uses to find the emote sets related to a channel's
-        subscriptions. If a channel can not have subscribers, this API is never
+        subscription tiers. If a channel can not have subscribers, this API is never
         called.</p>
+
+        <p>The server-side of this extension never queries the subscription status
+        of any viewer. Deciding if a viewer is subscribed and showing appropriate
+        actions based on the result is processed entirely on the viewer's device.</p>
 
         <p>The extension makes a number of other calls, including to Twitch's own
         API, the API for frankerfacez.com and betterttv.net. Their terms and
