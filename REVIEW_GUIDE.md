@@ -1,10 +1,10 @@
 ## Changes
 
--
+- Add Cheermotes support
 
 ## Guide
 
-The extension shows all subscriber, BTTV and FFZ emotes available on a channel. My channel (freaktechnik) is configured by the backend to show the sub emotes of a different channel (Adam13531). The extension has code to treat my channel as partner/affiliate when not in production, so subscription links also show up, even though the extension knows you can't subscribe to my channel. The subscription links it shows are not intended to be working, since they point to the product pages my channel would have, were it an affiliate/partnered channel. That channel name is overridable in the config, so I could set it to something valid.
+The extension shows all subscriber, BTTV and FFZ emotes available on a channel. My channel (freaktechnik) is configured by the backend to show the sub emotes of a different channel (Adam13531). It also gets the Cheermotes from CohhCarnage's channel for demonstration purposes, as with the sub emotes this is only in the non-production version on my channel. The extension has code to treat my channel as partner/affiliate when not in production, so subscription links also show up, even though the extension knows you can't subscribe to my channel. The subscription links it shows are not intended to be working, since they point to the product pages my channel would have, were it an affiliate/partnered channel. That channel name is overridable in the config, so I could set it to something valid.
 
 All the sections are hideable in the config and their default collapsed state can be controlled, too. For BTTV there's a special setting to show animated emotes. I've chosen to hide them by default to keep the panel area calmer. The title of every section can be chosen.
 

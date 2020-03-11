@@ -6,7 +6,8 @@
         TYPE: {
             TWITCH: 'twitch',
             BTTV: 'bttv',
-            FFZ: 'ffz'
+            FFZ: 'ffz',
+            CHEER: 'cheer',
         },
         TIERS: {
             1: "",
@@ -36,6 +37,10 @@
             shadows: true,
             details: [],
             broadcaster_name_override: '',
+            cheer_visible: true,
+            cheer_expanded: true,
+            cheer_title: '',
+            cheer_animated: true
         },
         loaded: false,
         loading: false,
@@ -72,7 +77,7 @@
             if(isSubbed && this.subTier === 0) {
                 this.subTier = 1;
             }
-            if(!this.loading && window.EmotesMode.channelId && this.receivedConfig) {
+            if(!this.loading && window.EmotesModel.channelId && this.receivedConfig) {
                 this.updatePanel(true);
             }
         },
@@ -124,6 +129,8 @@
                     return this.config.bttv_expanded;
                 case this.TYPE.FFZ:
                     return this.config.ffz_expanded;
+                case this.TYPE.CHEER:
+                    return this.config.cheer_expanded;
             }
         },
 
@@ -170,6 +177,7 @@
                     var gracefulFail = function() { return []; };
                     return Promise.all([
                         EmotesPanel.config.sub_visible ? window.EmotesModel.getEmotes().catch(gracefulFail) : Promise.resolve([]),
+                        EmotesPanel.config.cheer_visible ? window.EmotesModel.getCheerEmotes().catch(gracefulFail) : Promise.resolve([]),
                         EmotesPanel.config.bttv_visible ? window.EmotesModel.getBTTVEmotes().catch(gracefulFail) : Promise.resolve([]),
                         EmotesPanel.config.ffz_visible ? window.EmotesModel.getFFZEmotes().catch(gracefulFail) : Promise.resolve([])
                     ]);
@@ -180,6 +188,7 @@
                 EmotesPanel.loading = false;
                 var typeMap = [
                     EmotesPanel.TYPE.TWITCH,
+                    EmotesPanel.TYPE.CHEER,
                     EmotesPanel.TYPE.BTTV,
                     EmotesPanel.TYPE.FFZ
                 ];
@@ -282,6 +291,9 @@
             else if(type === this.TYPE.BTTV) {
                 heading.textContent = this.config.bttv_title || "BetterTTV";
             }
+            else if(type === this.TYPE.CHEER) {
+                heading.textContent = this.config.cheer_title || 'Cheermotes';
+            }
 
             header.appendChild(heading);
 
@@ -296,7 +308,11 @@
             var emoteWrapper = document.getElementById("emotewrapper");
             for(var i = 0; i < buttons.length; ++i) {
                 buttons[i].addEventListener("click", function() {
-                    emoteWrapper.className = this.getAttribute("data-theme");
+                    var newTheme = this.getAttribute("data-theme");
+                    if(newTheme !== emoteWrapper.className) {
+                        emoteWrapper.className = newTheme;
+                        emoteWrapper.dispatchEvent(new Event('theme'));
+                    }
                 }, false);
             }
             document.getElementById("overlaycopy").addEventListener("click", function() {
@@ -316,9 +332,17 @@
             this.currentOverlay = null;
             this.currentOverlayData = null;
             document.getElementById("overlay").className = 'hidden';
+            if(EmotesPanel.themeListener) {
+                document.getElementById("emotewrapper").removeEventListener("theme", EmotesPanel.themeListener, false);
+                EmotesPanel.themeListener = undefined;
+            }
         },
         addOverlayListener: function(item, emote, type) {
             item.addEventListener("click", function(e) {
+                var emoteWrapper = document.getElementById("emotewrapper");
+                emoteWrapper.className = document.body.className.replace('shadows', '').trim();
+                var theme = emoteWrapper.className.indexOf('dark') === -1 ? 'light' : 'dark';
+                var animated = EmotesPanel.config[type + '_animated'] ? 'animated' : 'static';
                 if(item === EmotesPanel.currentOverlay) {
                     EmotesPanel.closeOverlay();
                     return;
@@ -327,18 +351,28 @@
                 if(EmotesPanel.currentOverlay) {
                     EmotesPanel.closeOverlay();
                 }
-                var emoteWrapper = document.getElementById("emotewrapper");
                 var img = emoteWrapper.getElementsByTagName("img")[0];
-                img.src = emote.url;
+                if(emote.url) {
+                    img.src = emote.url;
+                }
+                else {
+                    img.src = emote[theme][animated].url;
+                    img.srcset = emote[theme][animated].srcset;
+                    EmotesPanel.themeListener = function() {
+                        theme = emoteWrapper.className.indexOf('dark') === -1 ? 'light' : 'dark';
+                        img.src = emote[theme][animated].url;
+                        img.srcset = emote[theme][animated].srcset;
+                    };
+                    emoteWrapper.addEventListener("theme", EmotesPanel.themeListener, false);
+                }
                 img.alt = emote.name;
                 img.title = emote.name;
                 if(emote.hasOwnProperty("srcset")) {
                     img.srcset = emote.srcset;
                 }
-                else {
+                else if(type !== EmotesPanel.TYPE.CHEER) {
                     img.srcset = '';
                 }
-                emoteWrapper.className = document.body.className.replace('shadows', '');
                 emoteWrapper.getElementsByTagName("figcaption")[0].textContent = emote.name;
 
                 var emoteDescription = EmotesPanel.getDescription(emote.name);
@@ -384,6 +418,8 @@
             var list = document.createElement('ul');
             var isTwitch = type.startsWith(this.TYPE.TWITCH);
             var tier = 0;
+            var theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
+            var animated = this.config[type + '_animated'] ? 'animated' : 'static';
             if(isTwitch) {
                 var price = type.substr(this.TYPE.TWITCH.length);
                 tier = this.getTierFromPrice(price);
@@ -391,7 +427,13 @@
             for(var i = 0; i < emotes.length; ++i) {
                 var emote = emotes[i];
                 var image = new Image(emote.width, emote.height);
-                image.src = emote.url;
+                if(emote.url) {
+                    image.src = emote.url;
+                }
+                else {
+                    image.src = emote[theme][animated].url;
+                    image.srcset = emote[theme][animated].srcset;
+                }
                 image.alt = emote.name;
                 image.title = emote.name;
                 if(emote.hasOwnProperty("srcset")) {
@@ -473,6 +515,9 @@
                 else if(this.visibleCredits.indexOf(this.TYPE.FFZ) > -1 && this.visibleCredits.length == 1) {
                     showAnd = 'ffz';
                 }
+            }
+            else {
+                return;
             }
             document.getElementById(prefix + 'credit').className = '';
             if(showAnd) {

@@ -1,6 +1,7 @@
 (function() {
     "use strict";
     var twitch = window.Twitch.ext;
+    var DEV_CHANNEL = '24261394';
     window.EmotesModel = {
         SIZES: [
             1,
@@ -59,7 +60,7 @@
                 if(user.data.length) {
                     EmotesModel.canHaveEmotes = !!user.data[0].broadcaster_type.length;
                     EmotesModel.username = user.data[0].login;
-                    if(!EmotesModel.isProd() && EmotesModel.channelId == '24261394') {
+                    if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
                         EmotesModel.canHaveEmotes = true;
                     }
                 }
@@ -80,9 +81,65 @@
             }).join(', ');
         },
 
+        getCheerEmotes: function() {
+            if(!this.canHaveEmotes) {
+                return Promise.reject("User can not have cheer emotes");
+            }
+            function formatTier(tier, theme, type) {
+                return {
+                    url: tier.images[theme][type]['1'],
+                    srcset: Object.keys(tier.images[theme][type]).map(function(s) {
+                        return `${tier.images[theme][type][s]} ${s}x`;
+                    }).join(', ')
+                };
+            }
+            var channelId = this.channelId;
+            if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
+                channelId = '26610234';
+            }
+            return fetch('https://api.twitch.tv/kraken/bits/actions?channel_id=' + channelId, {
+                headers: {
+                    "Client-ID": EmotesModel.clientId,
+                    Accept: "application/vnd.twitchtv.v5+json"
+                }
+            }).then(function(res) {
+                if(res.ok && res.status === 200) {
+                    return res.json();
+                }
+                throw new Error("Could not get cheer emote details");
+            }).then(function(json) {
+                var cheerEmotes = json.actions
+                    .filter(function(emote) {
+                        return emote.type === "channel_custom";
+                    });
+                var ret = [];
+                var j;
+                var tier;
+                var cheerEmote;
+                for(var i = 0; i < cheerEmotes.length; ++i) {
+                    cheerEmote = cheerEmotes[i];
+                    for(j = 0; j < cheerEmote.tiers.length; ++j) {
+                        tier = cheerEmote.tiers[j];
+                        ret.push({
+                            name: cheerEmote.prefix + tier.id,
+                            dark: {
+                                static: formatTier(tier, 'dark', 'static'),
+                                animated: formatTier(tier, 'dark', 'animated')
+                            },
+                            light: {
+                                static: formatTier(tier, 'light', 'static'),
+                                animated: formatTier(tier, 'light', 'animated')
+                            }
+                        });
+                    }
+                }
+                return ret;
+            });
+        },
+
         getEmotes: function() {
             if(!this.canHaveEmotes) {
-                return Promise.reject("User can not have twitch emotes");
+                return Promise.reject("User can not have Twitch emotes");
             }
             //TODO use official Twitch API if there ever is one (hint, hint)
             return fetch(this.ebsURL + this.channelId + '.json').then(function(res) {
