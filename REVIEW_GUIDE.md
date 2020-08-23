@@ -1,6 +1,7 @@
 ## Changes
 
 - Use new Cheermotes endpoint
+- Only use the twitch theme for dak/light mode choice
 
 ## Guide
 

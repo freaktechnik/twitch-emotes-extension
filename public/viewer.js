@@ -530,9 +530,6 @@
         },
 
         setTheme: function(theme) {
-            if(window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                theme = 'dark';
-            }
             if(!this.config.hasOwnProperty('shadows') || this.config.shadows) {
                 theme += ' shadows';
             }
