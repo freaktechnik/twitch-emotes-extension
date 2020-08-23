@@ -1,6 +1,6 @@
 ## Changes
 
-- Add Cheermotes support
+- Use new Cheermotes endpoint
 
 ## Guide
 

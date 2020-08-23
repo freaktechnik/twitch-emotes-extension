@@ -97,10 +97,9 @@
             if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
                 channelId = '26610234';
             }
-            return fetch('https://api.twitch.tv/kraken/bits/actions?channel_id=' + channelId, {
+            return fetch('https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=' + channelId, {
                 headers: {
                     "Client-ID": EmotesModel.clientId,
-                    Accept: "application/vnd.twitchtv.v5+json"
                 }
             }).then(function(res) {
                 if(res.ok && res.status === 200) {
@@ -108,9 +107,12 @@
                 }
                 throw new Error("Could not get cheer emote details");
             }).then(function(json) {
-                var cheerEmotes = json.actions
+                var cheerEmotes = json.data
                     .filter(function(emote) {
                         return emote.type === "channel_custom";
+                    })
+                    .sort(function(emoteA, emoteB) {
+                        return emoteB.order - emoteA.order;
                     });
                 var ret = [];
                 var j;
@@ -120,17 +122,19 @@
                     cheerEmote = cheerEmotes[i];
                     for(j = 0; j < cheerEmote.tiers.length; ++j) {
                         tier = cheerEmote.tiers[j];
-                        ret.push({
-                            name: cheerEmote.prefix + tier.id,
-                            dark: {
-                                static: formatTier(tier, 'dark', 'static'),
-                                animated: formatTier(tier, 'dark', 'animated')
-                            },
-                            light: {
-                                static: formatTier(tier, 'light', 'static'),
-                                animated: formatTier(tier, 'light', 'animated')
-                            }
-                        });
+                        if(tier.can_cheer) {
+                            ret.push({
+                                name: cheerEmote.prefix + tier.id,
+                                dark: {
+                                    static: formatTier(tier, 'dark', 'static'),
+                                    animated: formatTier(tier, 'dark', 'animated')
+                                },
+                                light: {
+                                    static: formatTier(tier, 'light', 'static'),
+                                    animated: formatTier(tier, 'light', 'animated')
+                                }
+                            });
+                        }
                     }
                 }
                 return ret;
