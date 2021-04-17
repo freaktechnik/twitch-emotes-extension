@@ -1,5 +1,0 @@
-
-RewriteEngine on
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_URI} ^/emotesets/([0-9]+)\.json$
-RewriteRule ([0-9]+)\.json$ fetch.php?id=$1 [NC,L]

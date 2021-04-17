@@ -20,7 +20,7 @@
             this.clientId = auth.clientId;
         },
 
-        ebsURL: 'https://te.humanoids.be/emotesets/',
+        ebsURL: 'https://api.emotes.ch/emotesets/',
         loadConfig: function() {
             if(twitch.configuration.global) {
                 this.ebsURL = JSON.parse(twitch.configuration.global.content).ebs;
