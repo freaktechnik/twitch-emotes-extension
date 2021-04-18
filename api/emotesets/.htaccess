@@ -1,1 +1,2 @@
 Header add Access-Control-Allow-Origin "https://3yumzvi6r4wfycsk7vt1kbtto9s0n3.ext-twitch.tv"
+Header add Cache-Control "public, max-age=86400, s-maxage=86400"

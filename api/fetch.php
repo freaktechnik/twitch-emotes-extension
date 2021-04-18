@@ -20,6 +20,7 @@ if(is_file($filePath)) {
     if(time() - $mtime < 60) {
         $response = file_get_contents($filePath);
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=86400, s-maxage=86400');
         echo $filePath;
         exit;
     }
@@ -39,6 +40,7 @@ if(isset($channelInfo['error'])) {
     if($channelInfo['error'] === 'Channel not found') {
         touch($errorCache);
     }
+    header('Cache-Control: max-age=60, s-maxage=60');
     http_response_code(404);
     exit;
 }
@@ -50,5 +52,6 @@ if($hasError) {
     unlink($errorCache);
 }
 
+header('Cache-Control: public, max-age=86400, s-maxage=86400');
 header('Content-Type: application/json');
 echo $response;
