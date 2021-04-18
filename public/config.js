@@ -192,7 +192,7 @@
         if(!window.EmotesModel.channelId) {
             window.EmotesModel.setAuth(auth);
         }
-        window.EmotesModel.getChannelInfo().then(function() {
+        window.EmotesModel.getChannelData().then(function() {
             var gracefulFail = function() { return []; };
             document.getElementById("broadcaster_name_override").setAttribute("placeholder", window.EmotesModel.username);
             return Promise.all([
