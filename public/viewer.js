@@ -170,7 +170,7 @@
             }
             var promise = Promise.resolve();
             if(this.needsChannelInfo()) {
-                promise = window.EmotesModel.getChannelData();
+                promise = window.EmotesModel.getChannelInfo();
             }
             if(!cached || !this.cachedEmotes) {
                 this.cachedEmotes = promise.then(function() {
@@ -215,9 +215,6 @@
                                 emotes = emotes.filter(function(emote) {
                                     return !emote.animated;
                                 });
-                                if(!emotes.length) {
-                                    continue;
-                                }
                             }
                             var section = EmotesPanel.makeEmoteSection(typeMap[i], emotes, expandSection);
                             base.appendChild(section);
