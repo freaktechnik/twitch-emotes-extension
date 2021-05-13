@@ -14,13 +14,18 @@ if($hasError) {
     }
 }
 
+function sendHeaders() {
+    header('Access-Control-Allow-Origin: https://3yumzvi6r4wfycsk7vt1kbtto9s0n3.ext-twitch.tv');
+    header('Content-Type: application/json');
+    header('Cache-Control: public, max-age=86400, s-maxage=86400');
+}
+
 if(is_file($filePath)) {
     $stat = lstat($filePath);
     $mtime = $stat[9];
     if(time() - $mtime < 60) {
         $response = file_get_contents($filePath);
-        header('Content-Type: application/json');
-        header('Cache-Control: public, max-age=86400, s-maxage=86400');
+        sendHeaders();
         echo $filePath;
         exit;
     }
@@ -52,6 +57,5 @@ if($hasError) {
     unlink($errorCache);
 }
 
-header('Cache-Control: public, max-age=86400, s-maxage=86400');
-header('Content-Type: application/json');
+sendHeaders();
 echo $response;
