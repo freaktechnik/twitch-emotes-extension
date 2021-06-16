@@ -72,14 +72,11 @@
             });
         },
 
-        makeEmoteUrl: function(emoteId, size) {
-            size = size || "1.0";
-            return 'https://static-cdn.jtvnw.net/emoticons/v1/' + emoteId + '/' + size;
-        },
-
-        makeSrcSet: function(emoteId) {
-            return this.SIZES.map(function(density) {
-                return EmotesModel.makeEmoteUrl(emoteId, density.toFixed(1)) + ' ' + density.toString(10) + 'x';
+        makeSrcSet: function(images) {
+            var sizes = Object.keys(images);
+            return sizes.map(function(size) {
+                var density = size.split('_', 1)[1];
+                return images[size] + ' ' + density;
             }).join(', ');
         },
 
@@ -154,10 +151,9 @@
                 }
                 throw new Error("Could not get sub tier details");
             }).then(function(json) {
-                return fetch('https://api.twitch.tv/kraken/chat/emoticon_images?emotesets=' + Object.values(json).join(','), {
+                return fetch('https://api.twitch.tv/helix/chat/emotes/set?emote_set_id=' + Object.values(json).join('&emote_set_id='), {
                     headers: {
                         "Client-ID": EmotesModel.clientId,
-                        Accept: "application/vnd.twitchtv.v5+json"
                     }
                 }).then(function(r) {
                     if(r.ok && r.status === 200) {
@@ -172,16 +168,25 @@
                 var planKeys = Object.keys(data[1]);
                 var ret = [];
                 var key;
+                var emote;
+                var bySet = {};
+                for(var j = 0; j < data[0].data.length; ++j) {
+                    emote = data[0].data[j];
+                    if(!bySet[emote.emote_set_id]) {
+                        bySet[emote.emote_set_id] = [];
+                    }
+                    bySet[emote.emote_set_id].push(emote);
+                }
                 for(var i = 0; i < planKeys.length; ++i) {
                     key = planKeys[i];
-                    if(data[0].emoticon_sets.hasOwnProperty(data[1][key])) {
+                    if(bySet.hasOwnProperty(data[1][key])) {
                         ret.push({
                             type: key,
-                            emotes: data[0].emoticon_sets[data[1][key]].map(function(emote) {
+                            emotes: bySet[data[1][key]].map(function(emote) {
                                 return {
-                                    name: emote.code,
-                                    url: EmotesModel.makeEmoteUrl(emote.id),
-                                    srcset: EmotesModel.makeSrcSet(emote.id),
+                                    name: emote.name,
+                                    url: emote.images.url_1x,
+                                    srcset: EmotesModel.makeSrcSet(emote.images),
                                     animated: false
                                 };
                             })
