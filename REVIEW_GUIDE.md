@@ -5,6 +5,7 @@
 - Hide animated emotes if user prefers reduced motion
 - Don't show empty sections
 - Only show cheermotes configuration if cheermotes are available for a channel (i.e. they are partnered)
+- Use new emotes APIs
 
 TODO update guide
 ## Guide
