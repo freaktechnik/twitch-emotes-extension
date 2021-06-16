@@ -282,7 +282,7 @@
                     // }, false);
                     var link = document.createElement("a");
                     link.href = this.getSubLink(tier);
-                    link.title = (this.config.sub_tooltip || "Subscribe for") + " " + price;
+                    link.title = this.config.sub_tooltip || "Subscribe";
                     link.textContent = this.config.sub_action || "Get";
                     link.target = '_blank';
                     heading.appendChild(link);
@@ -396,7 +396,7 @@
                         emote.tier = tier;
                         canSub = true;
                         document.getElementById("overlaysub").className = '';
-                        document.getElementById("overlaysub").getElementsByClassName("price")[0].textContent = price;
+                        document.getElementById("overlaysub").getElementsByClassName("tier")[0].textContent = "Tier " + tier;
                         if(twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable) {
                             document.getElementById("overlaycopy").className = 'hidden';
                         }
