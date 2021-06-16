@@ -211,7 +211,7 @@
                         else {
                             var expandSection = (EmotesPanel.config.popout_expand && isPopout) || EmotesPanel.getExpandedPref(typeMap[i]) || (!twitch.configuration.broadcaster && !window.EmotesModel.canHaveEmotes);
                             var emotes = emoteSets[i];
-                            if(typeMap[i] == EmotesPanel.TYPE.BTTV && !EmotesPanel.config.bttv_animated) {
+                            if((typeMap[i] == EmotesPanel.TYPE.BTTV && !EmotesPanel.config.bttv_animated) || window.matchMedia("(prefers-reduced-motion)").matches) {
                                 emotes = emotes.filter(function(emote) {
                                     return !emote.animated;
                                 });
