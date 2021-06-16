@@ -6,6 +6,7 @@
 - Don't show empty sections
 - Only show cheermotes configuration if cheermotes are available for a channel (i.e. they are partnered)
 - Use new emotes APIs
+- Don't show sub price in UI
 
 TODO update guide
 ## Guide

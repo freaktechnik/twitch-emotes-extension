@@ -345,7 +345,7 @@
                 var emoteWrapper = document.getElementById("emotewrapper");
                 emoteWrapper.className = document.body.className.replace('shadows', '').trim();
                 var theme = emoteWrapper.className.indexOf('dark') === -1 ? 'light' : 'dark';
-                var animated = EmotesPanel.config[type + '_animated'] ? 'animated' : 'static';
+                var animated = EmotesPanel.config[type + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
                 if(item === EmotesPanel.currentOverlay) {
                     EmotesPanel.closeOverlay();
                     return;
@@ -422,7 +422,7 @@
             var isTwitch = type.startsWith(this.TYPE.TWITCH);
             var tier = 0;
             var theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
-            var animated = this.config[type + '_animated'] ? 'animated' : 'static';
+            var animated = this.config[type + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
             if(isTwitch) {
                 var price = type.substr(this.TYPE.TWITCH.length);
                 tier = this.getTierFromPrice(price);
