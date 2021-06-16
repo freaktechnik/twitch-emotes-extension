@@ -216,10 +216,13 @@
                                     return !emote.animated;
                                 });
                             }
+                            if(!emotes.length) {
+                                continue;
+                            }
                             var section = EmotesPanel.makeEmoteSection(typeMap[i], emotes, expandSection);
                             base.appendChild(section);
                             if(!addedSomeEmotes) {
-                                addedSomeEmotes = !!emoteSets[i].length;
+                                addedSomeEmotes = !!emotes.length;
                             }
                         }
                         EmotesPanel.showCreditFooter(typeMap[i]);
