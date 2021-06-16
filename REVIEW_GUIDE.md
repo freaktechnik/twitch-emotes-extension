@@ -2,7 +2,11 @@
 
 - Use new Cheermotes endpoint
 - Only use the twitch theme for dak/light mode choice
+- Hide animated emotes if user prefers reduced motion
+- Don't show empty sections
+- Only show cheermotes configuration if cheermotes are available for a channel (i.e. they are partnered)
 
+TODO update guide
 ## Guide
 
 The extension shows all subscriber, BTTV and FFZ emotes available on a channel. My channel (freaktechnik) is configured by the backend to show the sub emotes of a different channel (Adam13531). It also gets the Cheermotes from CohhCarnage's channel for demonstration purposes, as with the sub emotes this is only in the non-production version on my channel. The extension has code to treat my channel as partner/affiliate when not in production, so subscription links also show up, even though the extension knows you can't subscribe to my channel. The subscription links it shows are not intended to be working, since they point to the product pages my channel would have, were it an affiliate/partnered channel. That channel name is overridable in the config, so I could set it to something valid.
