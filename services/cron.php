@@ -19,20 +19,38 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 while($entry !== false) {
     if ($entry[0] !== '.' && $entry !== '24261394.json') {
         list ( $id ) = explode('.', $entry);
-        curl_setopt($ch, CURLOPT_URL, 'https://api.twitchemotes.com/api/v4/channels/'.$id);
+        curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/chat/emotes/?broadcaster_id='.$id);
+        //TODO tiwtch api auth
         $data = curl_exec($ch);
 
         $channelInfo = json_decode($data, true);
         unset($data);
         $filePath = $basePath.$id.'.json';
 
-        if(isset($channelInfo['error'])) {
+        if(!isset($channelInfo['data'])) {
             if(is_file($filePath)) {
                 unlink($filePath);
             }
         }
         else {
-            $response = json_encode($channelInfo['plans']);
+            $byTypeAndTier = [];
+            foreach($channelInfo['data'] as $emote) {
+                $typeAndTier = $emote['emote_type'] + $emote['tier'];
+                if($emote['emote_type'] === 'bitstier') {
+                    if(!in_array($emote['emote_set_id'], $byTypeAndTier['bitstier'])) {
+                        $byTypeAndTier['bitstier'][] = $emote['emote_set_id'];
+                    }
+                }
+                else {
+                    $byTypeAndTier[$typeAndTier] = $emote['emote_set_id'];
+                }
+            }
+            $legacy = [
+                '$4.99' => $byTypeAndTier['subscriptions1000'],
+                '$9.99' => $byTypeAndTier['subscriptions2000'],
+                '$24.99' => $byTypeAndTier['subscriptions3000']
+            ];
+            $response = json_encode($legacy);
 
             $shouldUpdate = true;
             if(is_file($filePath)) {

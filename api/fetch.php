@@ -4,6 +4,8 @@ $basePath = __DIR__.'/../api/emotesets/';
 $filePath = $basePath.$channelId.'.json';
 $errorCache = __DIR__.'/../api/cache/'.$channelId;
 
+//TODO require JWT
+
 $hasError = is_file($errorCache);
 if($hasError) {
     $stat = lstat($filePath);
@@ -32,7 +34,8 @@ if(is_file($filePath)) {
 }
 
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'https://api.twitchemotes.com/api/v4/channels/'.$channelId);
+curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/chat/emotes/?broadcaster_id='.$channelId);
+//TODO app token
 curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $data = curl_exec($ch);
@@ -41,7 +44,8 @@ unset($ch);
 
 $channelInfo = json_decode($data, true);
 unset($data);
-if(isset($channelInfo['error'])) {
+if(!isset($channelInfo['data'])) {
+    //TODO do on 400?
     if($channelInfo['error'] === 'Channel not found') {
         touch($errorCache);
     }
@@ -50,7 +54,25 @@ if(isset($channelInfo['error'])) {
     exit;
 }
 
-$response = json_encode($channelInfo['plans']);
+$byTypeAndTier = [];
+foreach($channelInfo['data'] as $emote) {
+    $typeAndTier = $emote['emote_type'] + $emote['tier'];
+    if($emote['emote_type'] === 'bitstier') {
+        if(!in_array($emote['emote_set_id'], $byTypeAndTier['bitstier'])) {
+            $byTypeAndTier['bitstier'][] = $emote['emote_set_id'];
+        }
+    }
+    else {
+        $byTypeAndTier[$typeAndTier] = $emote['emote_set_id'];
+    }
+}
+$legacy = [
+    '$4.99' => $byTypeAndTier['subscriptions1000'],
+    '$9.99' => $byTypeAndTier['subscriptions2000'],
+    '$24.99' => $byTypeAndTier['subscriptions3000']
+];
+
+$response = json_encode($legacy);
 file_put_contents($filePath, $response);
 
 if($hasError) {
