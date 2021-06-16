@@ -195,6 +195,9 @@
         window.EmotesModel.getChannelInfo().then(function() {
             var gracefulFail = function() { return []; };
             document.getElementById("broadcaster_name_override").setAttribute("placeholder", window.EmotesModel.username);
+            if(!window.EmotesModel.canHaveCheermotes) {
+                document.getElementById("cheermotes-wrapper").className = 'hidden';
+            }
             return Promise.all([
                 window.EmotesModel.getEmotes().catch(gracefulFail),
                 window.EmotesModel.getBTTVEmotes().catch(gracefulFail),

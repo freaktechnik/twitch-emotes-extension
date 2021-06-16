@@ -59,9 +59,11 @@
             }).then(function(user) {
                 if(user.data.length) {
                     EmotesModel.canHaveEmotes = !!user.data[0].broadcaster_type.length;
+                    EmotesModel.canHaveCheermotes = user.data[0].broadcaster_type === "partner";
                     EmotesModel.username = user.data[0].login;
                     if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
                         EmotesModel.canHaveEmotes = true;
+                        EmotesModel.canHaveCheermotes = true;
                     }
                 }
                 else {
@@ -82,7 +84,7 @@
         },
 
         getCheerEmotes: function() {
-            if(!this.canHaveEmotes) {
+            if(!this.canHaveEmotes || !this.canHaveCheermotes) {
                 return Promise.reject("User can not have cheer emotes");
             }
             function formatTier(tier, theme, type) {
