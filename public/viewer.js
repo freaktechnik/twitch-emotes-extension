@@ -142,7 +142,7 @@
         },
 
         needsChannelInfo: function() {
-            return (window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && (this.config.sub_visible || this.config.bitstier_visible || this.config.follower_visible);
+            return (window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && (this.config.sub_visible || this.config.bitstier_visible || this.config.follower_visible || this.config.cheer_visible);
         },
 
         resetPanel: function() {
@@ -203,48 +203,47 @@
                 var addedSomeEmotes = false;
                 var isPopout = window.EmotesModel.isPopout();
                 for(var i = 0; i < emoteSets.length; ++i) {
-                    if(emoteSets[i].length) {
-                        if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
-                            var collections = Object.keys(emoteSets[i]);
-                            for(var j = 0; j < collections[i].length; ++j) {
-                                var collection = collections[i];
-                                var collectionEmotes = emoteSets[i][collection];
-                                if(collectionEmotes.length) {
-                                    var section;
-                                    if(collection.startsWith('subscriptions')) {
-                                        if(!EmotesPanel.config.sub_visible) {
-                                            continue;
-                                        }
-                                        var tier = collection.slice('subscriptions'.length)[0];
-                                        section = EmotesPanel.makeEmoteSection(typeMap[i] + tier, collectionEmotes, EmotesPanel.config["sub_expanded_" + tier]);
+                    if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
+                        var collections = Object.keys(emoteSets[i]).sort();
+                        for(var j = 0; j < collections.length; ++j) {
+                            var collection = collections[j];
+                            var collectionEmotes = emoteSets[i][collection];
+                            if(collectionEmotes.length) {
+                                var section;
+                                if(collection.startsWith('subscriptions')) {
+                                    if(!EmotesPanel.config.sub_visible) {
+                                        continue;
                                     }
-                                    else {
-                                        if(!EmotesPanel.config[collection + '_visible']) {
-                                            continue;
-                                        }
-                                        section = EmotesPanel.makeEmoteSection(typeMap[i] + collection, collectionEmotes, EmotesPanel.config[collection + "_expanded"]);
-                                    }
-                                    base.appendChild(section);
-                                    addedSomeEmotes = true;
+                                    var tier = collection.slice('subscriptions'.length)[0];
+                                    section = EmotesPanel.makeEmoteSection(typeMap[i] + tier, collectionEmotes, EmotesPanel.config["sub_expanded_" + tier]);
                                 }
+                                else {
+                                    if(!EmotesPanel.config[collection + '_visible']) {
+                                        continue;
+                                    }
+                                    section = EmotesPanel.makeEmoteSection(typeMap[i] + collection, collectionEmotes, EmotesPanel.config[collection + "_expanded"]);
+                                }
+                                base.appendChild(section);
+                                addedSomeEmotes = true;
+                                EmotesPanel.showCreditFooter(typeMap[i]);
                             }
                         }
-                        else {
-                            var expandSection = (EmotesPanel.config.popout_expand && isPopout) || EmotesPanel.getExpandedPref(typeMap[i]) || (!twitch.configuration.broadcaster && !window.EmotesModel.canHaveEmotes);
-                            var emotes = emoteSets[i];
-                            if((typeMap[i] == EmotesPanel.TYPE.BTTV && !EmotesPanel.config.bttv_animated) || window.matchMedia("(prefers-reduced-motion)").matches) {
-                                emotes = emotes.filter(function(emote) {
-                                    return !emote.animated;
-                                });
-                            }
-                            if(!emotes.length) {
-                                continue;
-                            }
-                            var section = EmotesPanel.makeEmoteSection(typeMap[i], emotes, expandSection);
-                            base.appendChild(section);
-                            if(!addedSomeEmotes) {
-                                addedSomeEmotes = !!emotes.length;
-                            }
+                    }
+                    else if(emoteSets[i].length) {
+                        var expandSection = (EmotesPanel.config.popout_expand && isPopout) || EmotesPanel.getExpandedPref(typeMap[i]) || (!twitch.configuration.broadcaster && !window.EmotesModel.canHaveEmotes);
+                        var emotes = emoteSets[i];
+                        if((typeMap[i] == EmotesPanel.TYPE.BTTV && !EmotesPanel.config.bttv_animated) || window.matchMedia("(prefers-reduced-motion)").matches) {
+                            emotes = emotes.filter(function(emote) {
+                                return !emote.animated;
+                            });
+                        }
+                        if(!emotes.length) {
+                            continue;
+                        }
+                        var section = EmotesPanel.makeEmoteSection(typeMap[i], emotes, expandSection);
+                        base.appendChild(section);
+                        if(!addedSomeEmotes) {
+                            addedSomeEmotes = !!emotes.length;
                         }
                         EmotesPanel.showCreditFooter(typeMap[i]);
                     }
@@ -278,7 +277,7 @@
 
             if(type.startsWith(this.TYPE.TWITCH)) {
                 var tier = type.substr(this.TYPE.TWITCH.length);
-                if(price === 'follower') {
+                if(tier === 'follower') {
                     heading.textContent = this.config.follower_title || 'Follower';
                 }
                 else if(tier === 'bitstier') {
