@@ -198,6 +198,11 @@
             if(!window.EmotesModel.canHaveCheermotes) {
                 document.getElementById("cheermotes-wrapper").className = 'hidden';
             }
+            if(!window.EmotesModel.canHaveEmotes) {
+                document.getElementById("sub-wrapper").className = 'hidden';
+                document.getElementById("follower-wrapper").className = 'hidden';
+                document.getElementById("bitstier-wrapper").className = 'hidden';
+            }
             return Promise.all([
                 window.EmotesModel.getEmotes().catch(gracefulFail),
                 window.EmotesModel.getBTTVEmotes().catch(gracefulFail),

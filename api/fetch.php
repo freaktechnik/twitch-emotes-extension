@@ -58,6 +58,7 @@ $userData = curl_exec($ch);
 $userStatus = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 if($userStatus === 404) {
     touch($errorCache);
+    sendHeaders();
     header('Cache-Control: max-age=60, s-maxage=60');
     http_response_code(404);
     exit;
@@ -66,6 +67,7 @@ $parsedUser = json_decode($userData, true);
 unset($userData);
 if(empty($parsedUser['data'])) {
     touch($errorCache);
+    sendHeaders();
     header('Cache-Control: max-age=60, s-maxage=60');
     http_response_code(404);
     exit;
@@ -81,6 +83,7 @@ if(!isset($channelInfo['data'])) {
     if($status === 400) {
         touch($errorCache);
     }
+    sendHeaders();
     header('Cache-Control: max-age=60, s-maxage=60');
     http_response_code(404);
     exit;
