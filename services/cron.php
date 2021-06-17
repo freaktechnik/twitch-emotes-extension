@@ -18,7 +18,7 @@ foreach($it as $file) {
 }
 $it = new FilesystemIterator($newBase);
 foreach($it as $file) {
-    if($now - $file->getCTime() >= $day) {
+    if($now - $file->getCTime() >= $day && $file->getFilename() !== '24261394.json') {
         unlink($basePath.$file->getFilename());
     }
 }
