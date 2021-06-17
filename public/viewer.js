@@ -40,7 +40,14 @@
             cheer_visible: true,
             cheer_expanded: true,
             cheer_title: '',
-            cheer_animated: true
+            cheer_animated: true,
+            bitstier_visible: true,
+            bitstier_expanded: true,
+            bitstier_title: '',
+            follower_visible: true,
+            follower_expanded: true,
+            follower_action: '',
+            follower_title: ''
         },
         loaded: false,
         loading: false,
@@ -109,7 +116,7 @@
         },
 
         noSectionsVisible: function() {
-            return !this.config.sub_visible && !this.config.bttv_visible && !this.config.ffz_visible;
+            return !this.config.sub_visible && !this.config.bitstier_visible && !this.config.follower_visible && !this.config.bttv_visible && !this.config.ffz_visible;
         },
 
         doneLoading: function() {
@@ -135,7 +142,7 @@
         },
 
         needsChannelInfo: function() {
-            return (window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && this.config.sub_visible;
+            return (window.EmotesModel.canHaveEmotes === undefined || !window.EmotesModel.username) && (this.config.sub_visible || this.config.bitstier_visible || this.config.follower_visible);
         },
 
         resetPanel: function() {
@@ -176,7 +183,7 @@
                 this.cachedEmotes = promise.then(function() {
                     var gracefulFail = function() { return []; };
                     return Promise.all([
-                        EmotesPanel.config.sub_visible ? window.EmotesModel.getEmotes().catch(gracefulFail) : Promise.resolve([]),
+                        (EmotesPanel.config.sub_visible || EmotesPanel.config.bitstier_visible || EmotesPanel.config.follower_visible) ? window.EmotesModel.getEmotes().catch(gracefulFail) : Promise.resolve([]),
                         EmotesPanel.config.cheer_visible ? window.EmotesModel.getCheerEmotes().catch(gracefulFail) : Promise.resolve([]),
                         EmotesPanel.config.bttv_visible ? window.EmotesModel.getBTTVEmotes().catch(gracefulFail) : Promise.resolve([]),
                         EmotesPanel.config.ffz_visible ? window.EmotesModel.getFFZEmotes().catch(gracefulFail) : Promise.resolve([])
@@ -197,12 +204,26 @@
                 var isPopout = window.EmotesModel.isPopout();
                 for(var i = 0; i < emoteSets.length; ++i) {
                     if(emoteSets[i].length) {
-                        if(typeMap[i] === EmotesPanel.TYPE.TWITCH && EmotesPanel.config.sub_visible) {
-                            for(var j = 0; j < emoteSets[i].length; ++j) {
-                                var subPlan = emoteSets[i][j];
-                                if(subPlan.emotes.length) {
-                                    var tier = EmotesPanel.getTierFromPrice(subPlan.type);
-                                    var section = EmotesPanel.makeEmoteSection(typeMap[i] + subPlan.type, subPlan.emotes, EmotesPanel.config["sub_expanded_" + tier]);
+                        if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
+                            var collections = Object.keys(emoteSets[i]);
+                            for(var j = 0; j < collections[i].length; ++j) {
+                                var collection = collections[i];
+                                var collectionEmotes = emoteSets[i][collection];
+                                if(collectionEmotes.length) {
+                                    var section;
+                                    if(collection.startsWith('subscriptions')) {
+                                        if(!EmotesPanel.config.sub_visible) {
+                                            continue;
+                                        }
+                                        var tier = collection.slice('subscriptions'.length)[0];
+                                        section = EmotesPanel.makeEmoteSection(typeMap[i] + tier, collectionEmotes, EmotesPanel.config["sub_expanded_" + tier]);
+                                    }
+                                    else {
+                                        if(!EmotesPanel.config[collection + '_visible']) {
+                                            continue;
+                                        }
+                                        section = EmotesPanel.makeEmoteSection(typeMap[i] + collection, collectionEmotes, EmotesPanel.config[collection + "_expanded"]);
+                                    }
                                     base.appendChild(section);
                                     addedSomeEmotes = true;
                                 }
@@ -240,17 +261,6 @@
             });
         },
 
-        getTierFromPrice: function(price) {
-            var numericPrice = parseFloat(price.substr(1));
-            if(numericPrice >= 24.99) {
-                return 3;
-            }
-            else if(numericPrice >= 9.99) {
-                return 2;
-            }
-            return 1;
-        },
-
         getSubLink: function(tier) {
             var username = EmotesModel.username;
             if(tier === 1) {
@@ -267,11 +277,31 @@
             var heading = document.createElement("h2");
 
             if(type.startsWith(this.TYPE.TWITCH)) {
-                var price = type.substr(this.TYPE.TWITCH.length);
-                var tier = this.getTierFromPrice(price);
-                heading.textContent = (this.config.sub_title || "Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
+                var tier = type.substr(this.TYPE.TWITCH.length);
+                if(price === 'follower') {
+                    heading.textContent = this.config.follower_title || 'Follower';
+                }
+                else if(tier === 'bitstier') {
+                    heading.textContent = this.config.bitstier_title || 'Bit Tier Rewards';
+                }
+                else {
+                    heading.textContent = (this.config.sub_title || "Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
+                }
 
-                if(this.canSub(tier)) {
+                if(tier === 'follower') {
+                    var button = document.createElement("button");
+                    button.textContent = this.config.follower_action || "Follow";
+                    button.addEventListener(function() {
+                        window.Twitch.ext.actions.followChannel(EmotesModel.username);
+                    }, false);
+                    window.Twitch.ext.actions.onFollow(function(didFollow, username) {
+                        if(didFollow && username === EmotesModel.username) {
+                            button.remove();
+                        }
+                    });
+                    heading.appendChild(button);
+                }
+                else if(tier !== 'bitstier' && this.canSub(tier)) {
                     // var link = document.createElement("button");
                     // link.type = "button";
                     // link.addEventListener("click", function(e) {
@@ -327,6 +357,14 @@
             document.getElementById("overlaysub").addEventListener("click", function() {
                 window.open(EmotesPanel.getSubLink(EmotesPanel.currentOverlayData.tier), '_blank');
             }, false);
+            document.getElementById("overlayfollow").addEventListener("click", function() {
+                window.Twitch.ext.actions.followChannel(EmotesModel.username);
+            }, false);
+            window.Twitch.ext.actions.onFollow(function(didFollow, username) {
+                if(didFollow && username === EmotesModel.username) {
+                    document.getElementById("overlayfollow").className = "hidden";
+                }
+            });
         },
         currentOverlay: null,
         currentOverlayData: null,
@@ -389,10 +427,14 @@
                 }
 
                 var canSub = false;
+                var canFollow = false;
                 if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
-                    var price = type.substr(EmotesPanel.TYPE.TWITCH.length);
-                    var tier = EmotesPanel.getTierFromPrice(price);
-                    if(EmotesPanel.canSub(tier)) {
+                    var tier = type.substr(EmotesPanel.TYPE.TWITCH.length);
+                    if(tier === 'follower') {
+                        canFollow = true;
+                        document.getElementById("overlayfollow").className = '';
+                    }
+                    else if(tier !== 'bitstier' && EmotesPanel.canSub(tier)) {
                         emote.tier = tier;
                         canSub = true;
                         document.getElementById("overlaysub").className = '';
@@ -409,6 +451,9 @@
                     document.getElementById("overlaysub").className = 'hidden';
                     document.getElementById("overlaycopy").className = '';
                 }
+                if(!canFollow) {
+                    document.getElementById("overlayfollow").className = 'hidden';
+                }
 
                 EmotesPanel.currentOverlayData = emote;
                 EmotesPanel.currentOverlay = item;
@@ -424,8 +469,7 @@
             var theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
             var animated = this.config[type + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
             if(isTwitch) {
-                var price = type.substr(this.TYPE.TWITCH.length);
-                tier = this.getTierFromPrice(price);
+                tier = type.substr(this.TYPE.TWITCH.length);
             }
             for(var i = 0; i < emotes.length; ++i) {
                 var emote = emotes[i];
@@ -444,7 +488,7 @@
                 }
                 var imgWrapper = document.createElement('div');
                 imgWrapper.appendChild(image);
-                if(isTwitch && twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable && this.canSub(tier)) {
+                if(isTwitch && !['bitstier', 'follower'].includes(tier) && twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable && this.canSub(tier)) {
                     var lock = document.createElement('span');
                     lock.className = 'lock';
                     lock.textContent = '🔒';

@@ -214,10 +214,22 @@
             received.auth = true;
             for(var i = 0; i < emotes.length; ++i) {
                 if(sectionIds[i] == 'sub') {
-                    for(var j = 0; j < emotes[i].length; ++j) {
-                        addEmotes(sectionIds[i], emotes[i][j].emotes, " (" + emotes[i][j].type + ")");
-                        if(!hasSubEmotes && emotes[i][j].emotes.length) {
-                            hasSubEmotes = true;
+                    var collections = Object.keys(emotes[i]);
+                    for(var j = 0; j < collections.length; ++j) {
+                        var collection = collections[j];
+                        var collectionEmotes = emotes[i][collection];
+                        if(collection.startsWith('subscriptions')) {
+                            var tier = collection.slice('subscriptions'.length)[0];
+                            addEmotes(sectionIds[i], collectionEmotes, " (Tier " + tier + ")");
+                            if(!hasSubEmotes && collectionEmotes.length) {
+                                hasSubEmotes = true;
+                            }
+                        }
+                        else {
+                            addEmotes(collection, collectionEmotes);
+                            if(!hasSubEmotes && collectionEmotes.length) {
+                                hasSubEmotes = true;
+                            }
                         }
                     }
                 }
