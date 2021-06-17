@@ -230,7 +230,7 @@
                                 hasSubEmotes = true;
                             }
                         }
-                        else {
+                        else if(['bitstier', 'follower'].includes(collection)) {
                             addEmotes(collection, collectionEmotes);
                             if(!hasSubEmotes && collectionEmotes.length) {
                                 hasSubEmotes = true;

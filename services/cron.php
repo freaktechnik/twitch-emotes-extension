@@ -12,13 +12,13 @@ $it = new FilesystemIterator($basePath);
 $now = time();
 $day = 60 * 60 * 24;
 foreach($it as $file) {
-    if($now - $file->getCTime() >= $day) {
+    if($now - $file->getCTime() >= $day && $file->getFilename() !== '.htaccess') {
         unlink($basePath.$file->getFilename());
     }
 }
 $it = new FilesystemIterator($newBase);
 foreach($it as $file) {
-    if($now - $file->getCTime() >= $day && $file->getFilename() !== '24261394.json') {
+    if($now - $file->getCTime() >= $day && $file->getFilename() !== '.htaccess') {
         unlink($basePath.$file->getFilename());
     }
 }

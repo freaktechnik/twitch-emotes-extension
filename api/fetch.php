@@ -1,14 +1,4 @@
 <?php
-require_once '../services/config.php';
-if (is_file('../services/token.php')) {
-    require_once '../services/token.php';
-    if(!tokenIsValid($token, $expires)) {
-        unset($token);
-        $token = getToken();
-    }
-} else {
-    $token = getToken();
-}
 
 $channelId = $_GET['id'];
 $basePath = __DIR__.'/../api/emotesets/';
@@ -20,20 +10,26 @@ $legacyOutput = $_GET['legacy'] === 'true';
 
 //TODO require JWT
 
+function sendHeaders($error = false) {
+    header('Access-Control-Allow-Origin: https://3yumzvi6r4wfycsk7vt1kbtto9s0n3.ext-twitch.tv');
+    header('Content-Type: application/json');
+    if($error) {
+        header('Cache-Control: public, max-age=60, s-maxage=60');
+    }
+    else {
+        header('Cache-Control: public, max-age=86400, s-maxage=86400');
+    }
+}
+
 $hasError = is_file($errorCache);
 if($hasError) {
     $stat = lstat($filePath);
     $mtime = $stat[9];
     if(time() - $mtime < 3600) {
         http_response_code(404);
+        sendHeaders(true);
         exit;
     }
-}
-
-function sendHeaders() {
-    header('Access-Control-Allow-Origin: https://3yumzvi6r4wfycsk7vt1kbtto9s0n3.ext-twitch.tv');
-    header('Content-Type: application/json');
-    header('Cache-Control: public, max-age=86400, s-maxage=86400');
 }
 
 $primaryPath = $legacyOutput ? $filePath : $newFile;
@@ -48,6 +44,17 @@ if(is_file($primaryPath)) {
     }
 }
 
+require_once '../services/config.php';
+if (is_file('../services/token.php')) {
+    require_once '../services/token.php';
+    if(!tokenIsValid($token, $expires)) {
+        unset($token);
+        $token = getToken();
+    }
+} else {
+    $token = getToken();
+}
+
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer '.$token, 'Client-ID: '.$clientId]);
 curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -58,43 +65,39 @@ $userData = curl_exec($ch);
 $userStatus = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 if($userStatus === 404) {
     touch($errorCache);
-    sendHeaders();
-    header('Cache-Control: max-age=60, s-maxage=60');
     http_response_code(404);
+    sendHeaders(true);
     exit;
 }
 $parsedUser = json_decode($userData, true);
 unset($userData);
 if(empty($parsedUser['data'])) {
     touch($errorCache);
-    sendHeaders();
-    header('Cache-Control: max-age=60, s-maxage=60');
     http_response_code(404);
+    sendHeaders(true);
     exit;
 }
 
-curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/chat/emotes/?broadcaster_id='.$channelId);
-$data = curl_exec($ch);
-$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-
-$channelInfo = json_decode($data, true);
-unset($data);
-if(!isset($channelInfo['data'])) {
-    if($status === 400) {
-        touch($errorCache);
-    }
-    sendHeaders();
-    header('Cache-Control: max-age=60, s-maxage=60');
-    http_response_code(404);
-    exit;
-}
-
+$channelInfo = [];
 $cheermotes = [];
-if($parsedUser['data'][0]['broadcaster_type'] === 'partner') {
-    curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id='.$channelId);
-    $cheermoteData = curl_exec($ch);
-    $cheermotes = json_decode($cheermoteData, true);
-    unset($cheermoteData);
+if(!empty($parsedUser['data'][0]['broadcaster_type']) || $channelId == '24261394') {
+    // dev override
+    if($channelId == '24261394') {
+        $channelId = '26610234';
+    }
+    curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/chat/emotes/?broadcaster_id='.$channelId);
+    $data = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+
+    $channelInfo = json_decode($data, true);
+    unset($data);
+
+    if($parsedUser['data'][0]['broadcaster_type'] === 'partner') {
+        curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id='.$channelId);
+        $cheermoteData = curl_exec($ch);
+        $cheermotes = json_decode($cheermoteData, true);
+        unset($cheermoteData);
+    }
 }
 curl_close($ch);
 unset($ch);
@@ -110,19 +113,21 @@ function makeSrcSet($emoteImages) {
 
 $byTypeAndTier = [];
 $formattedEmotes = [];
-foreach($channelInfo['data'] as $emote) {
-    $typeAndTier = $emote['emote_type'].$emote['tier'];
-    if($emote['emote_type'] === 'subscriptions') {
-        $byTypeAndTier[$typeAndTier] = $emote['emote_set_id'];
-    }
+if(isset($channelInfo['data'])) {
+    foreach($channelInfo['data'] as $emote) {
+        $typeAndTier = $emote['emote_type'].$emote['tier'];
+        if($emote['emote_type'] === 'subscriptions') {
+            $byTypeAndTier[$typeAndTier] = $emote['emote_set_id'];
+        }
 
-    $key = $emote['emote_type'] === 'subscriptions' ? $typeAndTier : $emote['emote_type'];
-    $formattedEmotes[$key][] = [
-        'name' => $emote['name'],
-        'url' => $emote['images']['url_1x'],
-        'srcset' => makeSrcSet($emote['images']),
-        'animated' => false,
-    ];
+        $key = $emote['emote_type'] === 'subscriptions' ? $typeAndTier : $emote['emote_type'];
+        $formattedEmotes[$key][] = [
+            'name' => $emote['name'],
+            'url' => $emote['images']['url_1x'],
+            'srcset' => makeSrcSet($emote['images']),
+            'animated' => false,
+        ];
+    }
 }
 $legacy = [];
 if(isset($byTypeAndTier['subscriptions1000'])) {
