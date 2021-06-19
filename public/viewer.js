@@ -28,6 +28,7 @@
             sub_expanded_3: true,
             sub_title: '',
             sub_visible: true,
+            sub_animated: true,
             tier_title_1: '',
             tier_title_2: '',
             tier_title_3: '',

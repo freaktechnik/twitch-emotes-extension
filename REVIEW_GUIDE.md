@@ -1,6 +1,6 @@
 ## Changes
 
--
+- Support animated sub emotes
 
 ## Guide
 

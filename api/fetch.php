@@ -7,6 +7,7 @@ $newBase = __DIR__.'/../api/emotes/';
 $newFile = $newBase.$channelId.'.json';
 $errorCache = __DIR__.'/../api/cache/'.$channelId;
 $legacyOutput = $_GET['legacy'] === 'true';
+$emoteTypeCache = __DIR__.'/../api/types/';
 
 //TODO require JWT
 
@@ -19,6 +20,10 @@ function sendHeaders($error = false) {
     else {
         header('Cache-Control: public, max-age=86400, s-maxage=86400');
     }
+}
+
+function emotesV2Url($emoteId, $type, $theme, $density) {
+    return 'https://static-cdn.jtvnw.net/emoticons/v2/'.$emoteId.'/'.$type.'/'.$theme.'/'.$density;
 }
 
 $hasError = is_file($errorCache);
@@ -80,9 +85,11 @@ if(empty($parsedUser['data'])) {
 
 $channelInfo = [];
 $cheermotes = [];
+$forceEmotes = false;
 if(!empty($parsedUser['data'][0]['broadcaster_type']) || $channelId == '24261394') {
     // dev override
     if($channelId == '24261394') {
+        $forceEmotes = true;
         $channelId = '26610234';
     }
     curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/chat/emotes/?broadcaster_id='.$channelId);
@@ -92,15 +99,13 @@ if(!empty($parsedUser['data'][0]['broadcaster_type']) || $channelId == '24261394
     $channelInfo = json_decode($data, true);
     unset($data);
 
-    if($parsedUser['data'][0]['broadcaster_type'] === 'partner') {
+    if($parsedUser['data'][0]['broadcaster_type'] === 'partner' || $forceEmotes) {
         curl_setopt($ch, CURLOPT_URL, 'https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id='.$channelId);
         $cheermoteData = curl_exec($ch);
         $cheermotes = json_decode($cheermoteData, true);
         unset($cheermoteData);
     }
 }
-curl_close($ch);
-unset($ch);
 
 function makeSrcSet($emoteImages) {
     $srcset = [];
@@ -109,6 +114,23 @@ function makeSrcSet($emoteImages) {
         $srcset[] = $image.' '.$density;
     }
     return implode(', ', $srcset);
+}
+
+curl_setopt(CURLOPT_HTTPHEADER, []);
+
+function formatAnimatedEmote($id) {
+    $ret = [];
+    foreach(['dark', 'light'] as $theme) {
+        foreach(['static', 'animated'] as $type) {
+            $ret[$theme][$type]['url'] = emotesV2Url($id, $type, $theme, '1.0');
+            $srcset = [];
+            foreach(['1.0' => 1, '2.0' => 2, '3.0' => 4] as $density => $times) {
+                $srcset[] = emotesV2Url($id, $type, $theme, $density).' '.$times.'x';
+            }
+            $ret[$theme][$type]['srcset'] = implode(', ', $srcset);
+        }
+    }
+    return $ret;
 }
 
 $byTypeAndTier = [];
@@ -120,15 +142,41 @@ if(isset($channelInfo['data'])) {
             $byTypeAndTier[$typeAndTier] = $emote['emote_set_id'];
         }
 
+        $canBeAnimated = strpos($emote['id'], 'emotesv2') === 0 && $emote['emote_type'] === 'subscriptions' && ($parsedUser['data'][0]['broadcaster_type'] === 'partner' || $forceEmotes);
+        $animated = $canBeAnimated && is_file($emoteTypeCache.'animated/'.$emote['id']);
+        if($canBeAnimated && !$animated && !is_file($emoteTypeCache.'static/'.$emote['id'])) {
+            curl_setopt($ch, CURLOPT_URL, emotesV2Url($emote['id'], 'animated', 'dark', '1.0'));
+            curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $animated = $status !== 404;
+            if($animated) {
+                touch($emoteTypeCache.'animated/'.$emote['id']);
+            }
+            else {
+                touch($emoteTypeCache.'static/'.$emote['id']);
+            }
+        }
+
         $key = $emote['emote_type'] === 'subscriptions' ? $typeAndTier : $emote['emote_type'];
-        $formattedEmotes[$key][] = [
-            'name' => $emote['name'],
-            'url' => $emote['images']['url_1x'],
-            'srcset' => makeSrcSet($emote['images']),
-            'animated' => false,
-        ];
+        if (!$animated) {
+            $formattedEmotes[$key][] = [
+                'name' => $emote['name'],
+                'url' => $emote['images']['url_1x'],
+                'srcset' => makeSrcSet($emote['images']),
+                'animated' => false,
+            ];
+        }
+        else {
+            $animatedEmote = formatAnimatedEmote($emote['id']);
+            $animatedEmote['name'] = $emote['name'];
+            $formattedEmotes[$key][] = $animatedEmote;
+        }
     }
 }
+
+curl_close($ch);
+unset($ch);
+
 $legacy = [];
 if(isset($byTypeAndTier['subscriptions1000'])) {
     $legacy['$4.99'] = $byTypeAndTier['subscriptions1000'];
