@@ -1,6 +1,6 @@
 <?php
-$basePath = __DIR__.'/../api/emotesets/';
-$newBase = __DIR__.'/../api/emotes/';
+$basePath = realpath(__DIR__.'/../api/emotesets/').'/';
+$newBase = realpath(__DIR__.'/../api/emotes/').'/';
 if(!is_dir($basePath)) {
     mkdir($basePath, 0755, true);
 }
@@ -19,6 +19,6 @@ foreach($it as $file) {
 $it = new FilesystemIterator($newBase);
 foreach($it as $file) {
     if($now - $file->getCTime() >= $day && $file->getFilename() !== '.htaccess') {
-        unlink($basePath.$file->getFilename());
+        unlink($newBase.$file->getFilename());
     }
 }
