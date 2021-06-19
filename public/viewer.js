@@ -384,7 +384,7 @@
                 emoteWrapper.className = document.body.className.replace('shadows', '').trim();
                 var theme = emoteWrapper.className.indexOf('dark') === -1 ? 'light' : 'dark';
                 var animated = EmotesPanel.config[type + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
-                if(item === EmotesPanel.currentOverlay) {
+                if(item.isSameNode(EmotesPanel.currentOverlay)) {
                     EmotesPanel.closeOverlay();
                     return;
                 }
