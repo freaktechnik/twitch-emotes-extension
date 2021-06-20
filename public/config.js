@@ -109,7 +109,7 @@
         var section = document.getElementById(sectionId + "-emotes");
         var bttvChecked = false;
         var cheerChecked = true;
-        var cheerType = 'static';
+        var cheerType = 'animated';
         var theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
         if(sectionId == 'bttv') {
             var animated = document.getElementById("bttv_animated");
@@ -128,24 +128,37 @@
                 }
             }, false);
         }
-        if(sectionId == 'cheer') {
-            var cheerAnimated = document.getElementById("cheer_animated");
-            cheerChecked = cheerAnimated.checked;
-            cheerType = cheerChecked ? 'animated' : 'static';
-            cheerAnimated.addEventListener("change", function() {
-                theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
-                cheerType = this.checked ? 'animated' : 'static';
-                for(var k = 0; k < emotes.length; ++k) {
-                    var item = section.querySelector("[alt=\"" + emotes[k].name + "\"]");
-                    item.src = emotes[k][theme][cheerType].url;
-                    item.srcset = emotes[k][theme][cheerType].srcset;
+        if(sectionId == 'cheer' || sectionId == 'sub') {
+            var hasAnimatedEmotes = sectionId == 'cheer';
+            if(!hasAnimatedEmotes) {
+                for(var l = 0; l < emotes.length; ++l) {
+                    if(!emotes[l].url) {
+                        hasAnimatedEmotes = true;
+                        break;
+                    }
                 }
-            });
+            }
+            if(hasAnimatedEmotes) {
+                var cheerAnimated = document.getElementById(sectionId + "_animated");
+                cheerChecked = cheerAnimated.checked;
+                cheerType = cheerChecked ? 'animated' : 'static';
+                cheerAnimated.addEventListener("change", function() {
+                    theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
+                    cheerType = this.checked ? 'animated' : 'static';
+                    for(var k = 0; k < emotes.length; ++k) {
+                        if(!emotes[k].url) {
+                            var item = section.querySelector("[alt=\"" + emotes[k].name + "\"]");
+                            item.src = emotes[k][theme][cheerType].url;
+                            item.srcset = emotes[k][theme][cheerType].srcset;
+                        }
+                    }
+                });
+            }
         }
         for(var i = 0; i < emotes.length; ++i) {
             var emote = emotes[i];
             var image = new Image(emote.width, emote.height);
-            if(sectionId == 'cheer') {
+            if(!emote.url) {
                 image.src = emote[theme][cheerType].url;
                 image.srcset = emote[theme][cheerType].srcset;
             }
@@ -185,6 +198,7 @@
         else {
             document.body.className = document.body.className.replace(/light|dark/, context.theme);
             document.getElementById("cheer_animated").dispatchEvent(new Event('change'));
+            document.getElementById("sub_animated").dispatchEvent(new Event('change'));
         }
     });
     twitch.onAuthorized(function(auth) {
