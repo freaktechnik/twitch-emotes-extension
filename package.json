@@ -1,6 +1,6 @@
 {
   "name": "Emotes-Showcase",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Twitch extension that displays emotes of channel",
   "main": "index.js",
   "scripts": {
