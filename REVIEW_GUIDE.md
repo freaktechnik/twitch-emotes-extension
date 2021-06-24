@@ -1,6 +1,8 @@
 ## Changes
 
 - Support animated sub emotes
+- Fix following from extension
+- Fix new sections not being shown and expanded by default
 
 ## Guide
 

@@ -305,9 +305,9 @@
                     var button = document.createElement("button");
                     button.textContent = this.config.follower_action || "Follow";
                     button.addEventListener("click", function() {
-                        twitch.ext.actions.followChannel(EmotesModel.username);
+                        twitch.actions.followChannel(EmotesModel.username);
                     }, false);
-                    twitch.ext.actions.onFollow(function(didFollow, username) {
+                    twitch.actions.onFollow(function(didFollow, username) {
                         if(didFollow && username === EmotesModel.username) {
                             button.remove();
                         }
@@ -371,9 +371,9 @@
                 window.open(EmotesPanel.getSubLink(EmotesPanel.currentOverlayData.tier), '_blank');
             }, false);
             document.getElementById("overlayfollow").addEventListener("click", function() {
-                twitch.ext.actions.followChannel(EmotesModel.username);
+                twitch.actions.followChannel(EmotesModel.username);
             }, false);
-            twitch.ext.actions.onFollow(function(didFollow, username) {
+            twitch.actions.onFollow(function(didFollow, username) {
                 if(didFollow && username === EmotesModel.username) {
                     document.getElementById("overlayfollow").className = "hidden";
                 }
@@ -391,12 +391,26 @@
                 EmotesPanel.themeListener = undefined;
             }
         },
+        isNonSubTier: function(tier) {
+            return ['bitstier', 'follower'].includes(tier);
+        },
         addOverlayListener: function(item, emote, type) {
             item.addEventListener("click", function(e) {
                 var emoteWrapper = document.getElementById("emotewrapper");
                 emoteWrapper.className = document.body.className.replace('shadows', '').trim();
                 var theme = emoteWrapper.className.indexOf('dark') === -1 ? 'light' : 'dark';
-                var animated = EmotesPanel.config[type + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
+                var configType = type;
+                var tier = 1;
+                if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
+                    tier = type.substr(EmotesPanel.TYPE.TWITCH.length);
+                    if (EmotesPanel.isNonSubTier(tier)) {
+                        configType = tier;
+                    }
+                    else {
+                        configType = 'sub';
+                    }
+                }
+                var animated = EmotesPanel.config[configType + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
                 if(item.isSameNode(EmotesPanel.currentOverlay)) {
                     EmotesPanel.closeOverlay();
                     return;
@@ -442,7 +456,6 @@
                 var canSub = false;
                 var canFollow = false;
                 if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
-                    var tier = type.substr(EmotesPanel.TYPE.TWITCH.length);
                     if(tier === 'follower') {
                         canFollow = true;
                         document.getElementById("overlayfollow").className = '';
@@ -480,10 +493,17 @@
             var isTwitch = type.startsWith(this.TYPE.TWITCH);
             var tier = 0;
             var theme = document.body.className.indexOf('dark') === -1 ? 'light' : 'dark';
-            var animated = this.config[type + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
+            var configType = type;
             if(isTwitch) {
                 tier = type.substr(this.TYPE.TWITCH.length);
+                if (this.isNonSubTier(tier)) {
+                    configType = tier;
+                }
+                else {
+                    configType = 'sub';
+                }
             }
+            var animated = this.config[configType + '_animated'] && !window.matchMedia("(prefers-reduced-motion)").matches ? 'animated' : 'static';
             for(var i = 0; i < emotes.length; ++i) {
                 var emote = emotes[i];
                 var image = new Image(emote.width, emote.height);
@@ -501,7 +521,7 @@
                 }
                 var imgWrapper = document.createElement('div');
                 imgWrapper.appendChild(image);
-                if(isTwitch && !['bitstier', 'follower'].includes(tier) && twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable && this.canSub(tier)) {
+                if(isTwitch && !this.isNonSubTier(tier) && twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable && this.canSub(tier)) {
                     var lock = document.createElement('span');
                     lock.className = 'lock';
                     lock.textContent = '🔒';
