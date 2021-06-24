@@ -70,6 +70,13 @@
         setConfig: function(config) {
             this.config = config;
 
+            if(!this.config.hasOwnProperty('follower_visible')) {
+                this.config.follower_visible = true;
+            }
+            if(!this.config.hasOwnProperty('bitstier_visible')) {
+                this.config.bitstier_visible = true;
+            }
+
             this.receivedConfig = true;
             if(!this.loading && window.EmotesModel.channelId) {
                 this.updatePanel().catch(function(e) {
