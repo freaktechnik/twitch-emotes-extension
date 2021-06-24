@@ -82,6 +82,9 @@
             if(!this.config.hasOwnProperty('bitstier_expanded')) {
                 this.config.bitstier_expanded = true;
             }
+            if(!this.config.hasOwnProperty('sub_animated')) {
+                this.config.sub_animated = true;
+            }
 
             this.receivedConfig = true;
             if(!this.loading && window.EmotesModel.channelId) {
