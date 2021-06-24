@@ -76,6 +76,12 @@
             if(!this.config.hasOwnProperty('bitstier_visible')) {
                 this.config.bitstier_visible = true;
             }
+            if(!this.config.hasOwnProperty('follower_expanded')) {
+                this.config.follower_expanded = true;
+            }
+            if(!this.config.hasOwnProperty('bitstier_expanded')) {
+                this.config.bitstier_expanded = true;
+            }
 
             this.receivedConfig = true;
             if(!this.loading && window.EmotesModel.channelId) {
@@ -222,7 +228,7 @@
                                     if(!EmotesPanel.config.sub_visible) {
                                         continue;
                                     }
-                                    var tier = collection.slice('subscriptions'.length)[0];
+                                    var tier = collection.slice('subscriptions'.length)[0] || '1';
                                     section = EmotesPanel.makeEmoteSection(typeMap[i] + tier, collectionEmotes, EmotesPanel.config["sub_expanded_" + tier]);
                                 }
                                 else {
@@ -298,10 +304,10 @@
                 if(tier === 'follower') {
                     var button = document.createElement("button");
                     button.textContent = this.config.follower_action || "Follow";
-                    button.addEventListener(function() {
-                        window.Twitch.ext.actions.followChannel(EmotesModel.username);
+                    button.addEventListener("click", function() {
+                        twitch.ext.actions.followChannel(EmotesModel.username);
                     }, false);
-                    window.Twitch.ext.actions.onFollow(function(didFollow, username) {
+                    twitch.ext.actions.onFollow(function(didFollow, username) {
                         if(didFollow && username === EmotesModel.username) {
                             button.remove();
                         }
@@ -365,9 +371,9 @@
                 window.open(EmotesPanel.getSubLink(EmotesPanel.currentOverlayData.tier), '_blank');
             }, false);
             document.getElementById("overlayfollow").addEventListener("click", function() {
-                window.Twitch.ext.actions.followChannel(EmotesModel.username);
+                twitch.ext.actions.followChannel(EmotesModel.username);
             }, false);
-            window.Twitch.ext.actions.onFollow(function(didFollow, username) {
+            twitch.ext.actions.onFollow(function(didFollow, username) {
                 if(didFollow && username === EmotesModel.username) {
                     document.getElementById("overlayfollow").className = "hidden";
                 }
