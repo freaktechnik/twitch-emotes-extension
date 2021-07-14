@@ -1,12 +1,9 @@
 <?php
 
 $channelId = $_GET['id'];
-$basePath = __DIR__.'/../api/emotesets/';
-$filePath = $basePath.$channelId.'.json';
 $newBase = __DIR__.'/../api/emotes/';
 $newFile = $newBase.$channelId.'.json';
 $errorCache = __DIR__.'/../api/cache/'.$channelId;
-$legacyOutput = $_GET['legacy'] === 'true';
 $emoteTypeCache = __DIR__.'/../api/types/';
 
 //TODO require JWT
@@ -28,7 +25,7 @@ function emotesV2Url($emoteId, $type, $theme, $density) {
 
 $hasError = is_file($errorCache);
 if($hasError) {
-    $stat = lstat($filePath);
+    $stat = lstat($errorCache);
     $mtime = $stat[9];
     if(time() - $mtime < 3600) {
         http_response_code(404);
@@ -37,12 +34,11 @@ if($hasError) {
     }
 }
 
-$primaryPath = $legacyOutput ? $filePath : $newFile;
-if(is_file($primaryPath)) {
-    $stat = lstat($primaryPath);
+if(is_file($newFile)) {
+    $stat = lstat($newFile);
     $mtime = $stat[9];
     if(time() - $mtime < 60) {
-        $response = file_get_contents($primaryPath);
+        $response = file_get_contents($newFile);
         sendHeaders();
         echo $response;
         exit;
@@ -133,15 +129,10 @@ function formatAnimatedEmote($id) {
     return $ret;
 }
 
-$byTypeAndTier = [];
 $formattedEmotes = [];
 if(isset($channelInfo['data'])) {
     foreach($channelInfo['data'] as $emote) {
         $typeAndTier = $emote['emote_type'].$emote['tier'];
-        if($emote['emote_type'] === 'subscriptions') {
-            $byTypeAndTier[$typeAndTier] = $emote['emote_set_id'];
-        }
-
         $canBeAnimated = strpos($emote['id'], 'emotesv2') === 0 && $emote['emote_type'] === 'subscriptions' && ($parsedUser['data'][0]['broadcaster_type'] === 'partner' || $forceEmotes);
         $animated = $canBeAnimated && is_file($emoteTypeCache.'animated/'.$emote['id']);
         if($canBeAnimated && !$animated && !is_file($emoteTypeCache.'static/'.$emote['id'])) {
@@ -176,17 +167,6 @@ if(isset($channelInfo['data'])) {
 
 curl_close($ch);
 unset($ch);
-
-$legacy = [];
-if(isset($byTypeAndTier['subscriptions1000'])) {
-    $legacy['$4.99'] = $byTypeAndTier['subscriptions1000'];
-}
-if(isset($byTypeAndTier['subscriptions2000'])) {
-    $legacy['$9.99'] = $byTypeAndTier['subscriptions2000'];
-}
-if(isset($byTypeAndTier['subscriptions3000'])) {
-    $legacy['$24.99'] = $byTypeAndTier['subscriptions3000'];
-}
 
 function formatTier($tier, $theme, $type) {
     $srcset = [];
@@ -227,19 +207,13 @@ if(array_key_exists('data', $cheermotes)) {
     }
 }
 
-$response = json_encode($legacy);
-file_put_contents($filePath, $response);
-$newResponse = json_encode([
+$response = json_encode([
     'emotes' => $formattedEmotes,
     'username' => $parsedUser['data'][0]['login'],
     'type' => $parsedUser['data'][0]['broadcaster_type'],
     'cheermotes' => $cheermotesFormatted,
 ]);
-file_put_contents($newFile, $newResponse);
-
-if(!$legacyOutput) {
-    $response = $newResponse;
-}
+file_put_contents($newFile, $response);
 
 if($hasError) {
     unlink($errorCache);
