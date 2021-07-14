@@ -233,7 +233,7 @@
             received.auth = true;
             for(var i = 0; i < emotes.length; ++i) {
                 if(sectionIds[i] == 'sub') {
-                    var collections = Object.keys(emotes[i]);
+                    var collections = Array.isArray(emotes[i]) ? [] : Object.keys(emotes[i]);
                     for(var j = 0; j < collections.length; ++j) {
                         var collection = collections[j];
                         var collectionEmotes = emotes[i][collection];

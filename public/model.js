@@ -3,12 +3,6 @@
     var twitch = window.Twitch.ext;
     var DEV_CHANNEL = '24261394';
     window.EmotesModel = {
-        SIZES: [
-            1,
-            2,
-            3,
-            4
-        ],
         BTTV_SIZES: [
            1,
            2,
@@ -18,13 +12,9 @@
         setAuth: function(auth) {
             this.channelId = auth.channelId;
             this.clientId = auth.clientId;
+            this.apiToken = auth.helixToken;
         },
-
-        ebsURL: 'https://api.emotes.ch/emotes/',
         loadConfig: function() {
-            if(twitch.configuration.global) {
-                this.ebsURL = JSON.parse(twitch.configuration.global.content).cacheEbs;
-            }
         },
 
         isPopout: function() {
@@ -46,37 +36,128 @@
             return 1;
         },
 
-        getChannelInfo: function() {
-            return fetch(this.ebsURL + this.channelId + '.json').then(function(res) {
-                if(res.ok && res.status === 200) {
-                    return res.json();
+        makeAPIRequest: function(endpoint) {
+            return fetch('https://api.twitch.tv/helix/' + endpoint, {
+                headers: {
+                    'Client-ID': this.clientId,
+                    Authorization: 'Extension ' + this.apiToken
                 }
-                throw new Error("could not load user info");
-            }).then(function(user) {
-                EmotesModel.canHaveEmotes = !!user.type.length;
-                EmotesModel.canHaveCheermotes = user.type === "partner";
-                EmotesModel.username = user.username;
-                if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
-                    EmotesModel.canHaveEmotes = true;
-                    EmotesModel.canHaveCheermotes = true;
+            }).then(function(response) {
+                if(response.ok && response.status) {
+                    return response.json();
                 }
-                EmotesModel.emotes = user.emotes;
-                EmotesModel.cheermotes = user.cheermotes;
+                throw new Error("API request failed");
             });
+        },
+
+        getChannelInfo: function() {
+            return this.makeAPIRequest("users?id=" + this.channelId).then(function(data) {
+                if(data.data.length) {
+                    var user = data.data[0];
+                    EmotesModel.canHaveEmotes = !!user.broadcaster_type;
+                    EmotesModel.canHaveCheermotes = user.broadcaster_type === "partner";
+                    EmotesModel.username = user.login;
+                    if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
+                        EmotesModel.canHaveEmotes = true;
+                        EmotesModel.canHaveCheermotes = true;
+                        EmotesModel.overrideChannelId = '26610234';
+                    }
+                }
+                else {
+                    throw new Error("No user info found");
+                }
+            }, function() {
+                throw new Error("could not load user info");
+            });
+        },
+
+        formatTier: function(tier, theme, type) {
+            var srcset = Object.keys(tier.images[theme][type]).map(function(scale) {
+                return tier.images[theme][type][scale] + ' ' + scale + 'x';
+            }).join(', ');
+            return {
+                url: tier.images[theme][type]['1'],
+                srcset: srcset
+            };
         },
 
         getCheerEmotes: function() {
             if(!this.canHaveEmotes || !this.canHaveCheermotes) {
                 return Promise.reject("User can not have cheer emotes");
             }
-            return Promise.resolve(this.cheermotes);
+            return this.makeAPIRequest('bits/cheermotes?broadcaster_id=' + (this.overrideChannelId || this.channelId)).then(function(data) {
+                var cheermotes = data.data.filter(function(emote) {
+                    return emote.type === 'channel_custom' && emote.tiers.some(function(tier) {
+                        return tier.can_cheer;
+                    });
+                }).sort(function (a, b) {
+                    return b.order - a.order;
+                });
+                var formatted = [];
+                var cheermote;
+                var tier;
+                for(var i = 0; i < cheermotes.length; ++i) {
+                    cheermote = cheermotes[i];
+                    for(var t = 0; t < cheermote.tiers.length; ++t) {
+                        tier = cheermote.tiers[t];
+                        if(tier.can_cheer) {
+                            formatted.push({
+                                name: cheermote.prefix + tier.id,
+                                dark: {
+                                    static: EmotesModel.formatTier(tier, 'dark', 'static'),
+                                    animated: EmotesModel.formatTier(tier, 'dark', 'animated')
+                                },
+                                light: {
+                                    static: EmotesModel.formatTier(tier, 'light', 'static'),
+                                    animated: EmotesModel.formatTier(tier, 'light', 'animated')
+                                }
+                            });
+                        }
+                    }
+                }
+                return formatted;
+            });
+        },
+
+        emotesV2Url: function(id, theme, type, size) {
+            return 'https://static-cdn.jtvnw.net/emoticons/v2/' + id + '/' + type + '/' + theme + '/' + size;
+        },
+
+        formatTierV2: function(id, theme, type) {
+            return {
+                url: this.emotesV2Url(id, theme, type, '1.0'),
+                srcset: this.emotesV2Url(id, theme, type, '1.0') + ' 1x, ' + this.emotesV2Url(id, theme, type, '2.0') + ' 2x, ' + this.emotesV2Url(id, theme, type, '3.0') + ' 4x'
+            };
         },
 
         getEmotes: function() {
             if(!this.canHaveEmotes) {
                 return Promise.reject("User can not have Twitch emotes");
             }
-            return Promise.resolve(this.emotes);
+            return this.makeAPIRequest('chat/emotes/?broadcaster_id=' + (this.overrideChannelId || this.channelId)).then(function(data) {
+                var sortedEmotes = {};
+                var emote;
+                var key;
+                for(var i = 0; i < data.data.length; ++i) {
+                    emote = data.data[i];
+                    key = emote.emote_type === 'subscriptions' ? emote.emote_type + emote.tier : emote.emote_type;
+                    if(!Array.isArray(sortedEmotes[key])) {
+                        sortedEmotes[key] = [];
+                    }
+                    sortedEmotes[key].push({
+                        name: emote.name,
+                        dark: {
+                            static: EmotesModel.formatTierV2(emote.id, 'dark', 'static'),
+                            animated: EmotesModel.formatTierV2(emote.id, 'dark', 'default'),
+                        },
+                        light: {
+                            static: EmotesModel.formatTierV2(emote.id, 'light', 'static'),
+                            animated: EmotesModel.formatTierV2(emote.id, 'light', 'default')
+                        }
+                    });
+                }
+                return sortedEmotes;
+            });
         },
 
         getBTTVEmotes: function() {

@@ -221,7 +221,7 @@
                 var isPopout = window.EmotesModel.isPopout();
                 for(var i = 0; i < emoteSets.length; ++i) {
                     if(typeMap[i] === EmotesPanel.TYPE.TWITCH) {
-                        var collections = Object.keys(emoteSets[i]).sort();
+                        var collections = Array.isArray(emoteSets[i]) ? [] : Object.keys(emoteSets[i]).sort();
                         for(var j = 0; j < collections.length; ++j) {
                             var collection = collections[j];
                             var collectionEmotes = emoteSets[i][collection];
@@ -441,7 +441,7 @@
                 if(emote.hasOwnProperty("srcset")) {
                     img.srcset = emote.srcset;
                 }
-                else if(type !== EmotesPanel.TYPE.CHEER) {
+                else if(emote.url) {
                     img.srcset = '';
                 }
                 emoteWrapper.getElementsByTagName("figcaption")[0].textContent = emote.name;
