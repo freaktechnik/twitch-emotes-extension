@@ -60,7 +60,7 @@
                     if(!EmotesModel.isProd() && EmotesModel.channelId == DEV_CHANNEL) {
                         EmotesModel.canHaveEmotes = true;
                         EmotesModel.canHaveCheermotes = true;
-                        EmotesModel.overrideChannelId = '26610234';
+                        EmotesModel.overrideChannelId = '10817445';
                     }
                 }
                 else {
