@@ -7,28 +7,26 @@
     <body>
         <h1>Privacy Policy for Emotes Showcase</h1>
         <p>This is the privacy policy for the <a href="https://www.twitch.tv/ext/3yumzvi6r4wfycsk7vt1kbtto9s0n3" title="Extension Listing on Twitch">Emotes Showcase</a> Twitch
-        Extension. Note that loading this policy already contacted the web server
-        this policy is concerned about. Sadly there is no way for me to provide the
-        policy directly within the extension, so you only have to accept Twitch's
-        policy.</p>
+        Extension. Note that loading this policy already contacted a third party server.
+        Sadly there is no way for me to provide the policy directly within the extension, to avoid this.</p>
 
-        <p>This policy primarily concerns the API provided under "te.humanoids.be",
-        which the extension uses to find the emote sets related to a channel's
-        subscription tiers. If a channel can not have subscribers, this API is never
-        called.</p>
+        <p>This extension never queries the subscription status of any viewer on the server side (or some remote system).
+        Deciding if a viewer is subscribed and showing appropriate actions based on the result is processed entirely on the viewer's device.
+        This also applies to the viewer's follow status, which is only cached while the extension is loaded when Twitch reports it back
+        from the follow action.</p>
+        
+        <p>The extension loads all data directly from the API of the parties providing the servies.
+        For Twitch emotes (subscriber, follower, bit tier reward and cheermotes) this means the data
+        is acquired from the Twitch API in your browser. Since you already are on the Twitch platform
+        at this point, you are presumably already aware of Twitch's <a href="https://www.twitch.tv/p/en/legal/privacy-notice/">Privacy Notice</a>
+        (if not, you should go and look at it, since it is relevant to the extension).</p>
 
-        <p>The server-side of this extension never queries the subscription status
-        of any viewer. Deciding if a viewer is subscribed and showing appropriate
-        actions based on the result is processed entirely on the viewer's device.</p>
-
-        <p>The extension makes a number of other calls, including to Twitch's own
-        API, the API for frankerfacez.com and betterttv.net. Their terms and
-        policies apply for those calls. The extension panel does not make these
+        <p>Other requests made by the extension may include requests to the API for frankerfacez.com and betterttv.net.
+        Their terms and policies apply for those calls. The extension panel does not make these
         calls when the sections were hidden completely in the broadcaster configuration,
-        however they will still be performed whenever the broadcaster configuration
-        is loaded.</p>
+        however they will still be performed from within the broadcaster configuration.</p>
 
-        <p>All requests to this server are logged by the hosting provider to
-        prevent attacks and provide anonymous usage statistics.</p>
+        <p>All requests to the server hosting this file may be logged by the hosting provider to
+        prevent attacks and provide anonymous usage statistics (or possibly other purposes).</p>
     </body>
 </html>
