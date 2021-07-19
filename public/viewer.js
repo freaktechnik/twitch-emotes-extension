@@ -467,7 +467,7 @@
                         emote.tier = tier;
                         canSub = true;
                         document.getElementById("overlaysub").className = '';
-                        document.getElementById("overlaysub").getElementsByClassName("tier")[0].textContent = "Tier " + tier;
+                        document.getElementById("overlaysub").getElementsByClassName("tier")[0].textContent = EmotesPanel.config['tier_title_' + tier] || "Tier " + tier;
                         if(twitch.viewer.isLinked && twitch.features.isSubscriptionStatusAvailable) {
                             document.getElementById("overlaycopy").className = 'hidden';
                         }
