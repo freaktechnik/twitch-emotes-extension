@@ -33,6 +33,7 @@
             tier_title_2: '',
             tier_title_3: '',
             sub_tooltip: '',
+            overlay_sub_label: '',
             popout_expand: true,
             bttv_animated: false,
             shadows: true,
@@ -48,7 +49,9 @@
             follower_visible: true,
             follower_expanded: true,
             follower_action: '',
-            follower_title: ''
+            follower_title: '',
+            overlay_follower_label: '',
+            overlay_copy_label: ''
         },
         loaded: false,
         loading: false,
@@ -92,6 +95,7 @@
                     twitch.rig.log(e.message);
                 });
             }
+            this.updateOverlayLabels();
         },
 
         updateViewer: function(isSubbed) {
@@ -172,6 +176,7 @@
             document.getElementById("subcredit").className = 'hidden';
             document.getElementById("bttvcredit").className = 'hidden';
             document.getElementById("ffzcredit").className = 'hidden';
+            this.closeOverlay();
             var ands = document.getElementById("credits").getElementsByClassName('and');
             for(var i = 0; i < ands.length; ++i) {
                 ands[i].className = 'and hidden';
@@ -350,6 +355,10 @@
         },
 
         setUpOverlay: function() {
+            if(this.overlaySetUp) {
+                return;
+            }
+            this.overlaySetUp = true;
             document.getElementById("overlayclose").addEventListener("click", function() {
                 EmotesPanel.closeOverlay();
             }, false);
@@ -364,6 +373,7 @@
                     }
                 }, false);
             }
+            this.updateOverlayLabels();
             document.getElementById("overlaycopy").addEventListener("click", function() {
                 var caption = emoteWrapper.getElementsByTagName('figcaption')[0];
                 var selection = document.getSelection();
@@ -381,6 +391,11 @@
                     document.getElementById("overlayfollow").className = "hidden";
                 }
             });
+        },
+        updateOverlayLabels: function() {
+            document.getElementById("overlaycopy").textContent = this.config.overlay_copy_label || "Copy emote code";
+            document.querySelector("#overlaysub .label").textContent = this.config.overlay_sub_label || "Subscribe to get emote";
+            document.getElementById("overlayfollow").textContent = this.config.overlay_follower_label || "Follow to get emote";
         },
         currentOverlay: null,
         currentOverlayData: null,
