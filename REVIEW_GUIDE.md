@@ -1,6 +1,7 @@
 ## Changes
 
-- Use helix directly in frontend
+- Allow customization of texts in overlay
+- Fix sub and follow status for broadcaster to default to true
 
 ## Guide
 
