@@ -97,7 +97,7 @@
         updateViewer: function(isSubbed) {
             isSubbed = isSubbed || false;
             var subStatus = twitch.viewer.subscriptionStatus;
-            this.subTier = this.isSubbed() ? 0 : parseInt(subStatus.tier[0], 10);
+            this.subTier = subStatus === null ? 0 : parseInt(subStatus.tier[0], 10);
             if(isSubbed && this.subTier === 0) {
                 this.subTier = 1;
             }
@@ -117,7 +117,7 @@
 
         isSubbed: function(tier) {
             tier = tier || 0;
-            return twitch.subscriptionStatus !== null && tier <= this.subTier;
+            return (twitch.viewer.subscriptionStatus !== null && tier <= this.subTier) || twitch.viewer.role === 'broadcaster';
         },
 
         getDescription: function(name) {
@@ -304,7 +304,7 @@
                     heading.textContent = (this.config.sub_title || "Subscription") + " (" + (this.config['tier_title_' + tier] || "Tier " + tier) + ")";
                 }
 
-                if(tier === 'follower') {
+                if(tier === 'follower' && twitch.viewer.role !== 'broadcaster') {
                     var button = document.createElement("button");
                     button.textContent = this.config.follower_action || "Follow";
                     button.addEventListener("click", function() {
@@ -459,7 +459,7 @@
                 var canSub = false;
                 var canFollow = false;
                 if(type.startsWith(EmotesPanel.TYPE.TWITCH)) {
-                    if(tier === 'follower') {
+                    if(tier === 'follower' && twitch.viewer.role !== 'broadcaster') {
                         canFollow = true;
                         document.getElementById("overlayfollow").className = '';
                     }
