@@ -1,7 +1,8 @@
 ## Changes
 
-- Allow customization of texts in overlay
-- Fix sub and follow status for broadcaster to default to true
+-
+
+The extension may not work on Android (or iOS) yet, this is filed as https://github.com/twitchdev/issues/issues/455. As the issue describes this is because the app is not providing a token to access the Twitch API, which is not an issue with the code of the extension, but the container it is loaded by.
 
 ## Guide
 
