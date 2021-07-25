@@ -25,17 +25,6 @@
             return location.search.includes("state=released");
         },
 
-        getTierFromPrice: function(price) {
-            var numericPrice = parseFloat(price.substr(1));
-            if(numericPrice >= 24.99) {
-                return 3;
-            }
-            else if(numericPrice >= 9.99) {
-                return 2;
-            }
-            return 1;
-        },
-
         makeAPIRequest: function(endpoint) {
             return fetch('https://api.twitch.tv/helix/' + endpoint, {
                 headers: {
